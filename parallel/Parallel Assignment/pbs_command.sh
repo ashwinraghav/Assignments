@@ -1,10 +1,10 @@
 #!/bin/sh
 #PBS -l nodes=1:ppn=1
 #PBS -l walltime=12:00:00
-#PBS -o output_filename
+#PBS -o output.txt
 #PBS -j oe
-#PBS -m bea
-#PBS -M userid@virginia.edu
+#PBS -m ea
+#PBS -M am2qa@virginia.edu
  
 cd $PBS_O_WORKDIR
-./a.out
+./a.out data25k.txt 0.5 > output.txt
