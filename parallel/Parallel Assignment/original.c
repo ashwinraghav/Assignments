@@ -102,6 +102,7 @@ int main(int argc, char *argv[])
         exit(1);
     }
     
+    
     /* Step 4 - read the coordinates and charges. */
     for (i = 0; i<natom; ++i)
     {

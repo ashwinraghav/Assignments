@@ -8,6 +8,7 @@
 
 /* Begin PBXFileReference section */
 		E73D903114113FAE0052D76E /* original.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = original.c; sourceTree = "<group>"; };
+		E73D903214114DBE0052D76E /* test.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = test.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -15,6 +16,7 @@
 			isa = PBXGroup;
 			children = (
 				E73D903114113FAE0052D76E /* original.c */,
+				E73D903214114DBE0052D76E /* test.c */,
 			);
 			sourceTree = "<group>";
 		};
