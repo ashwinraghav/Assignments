@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
     double cut, cut2;     /* Cut off for Rij in distance units */
     //double **coords;
     double *q, *vector2;
-    double element1, element2, element3;
+    double element0, element1, element2, element3;
     double subtotal_e, total_e, current_e, vec2, rij;
     double a, one_by_a;
     FILE *fptr;
@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
     /* Step 3 - Allocate the arrays to store the coordinate and charge
      data */
     //coords=alloc_2D_double(3,natom);
-    double coords[natom][3];
+    double coords[natom*3];
     if ( coords==NULL )
     {
         printf("Allocation error coords");
@@ -110,8 +110,8 @@ int main(int argc, char *argv[])
     /* Step 4 - read the coordinates and charges. */
     for (i = 0; i<natom; ++i)
     {
-        fscanf(fptr, "%lf %lf %lf %lf",&coords[i][0],
-               &coords[i][1],&coords[i][2],&q[i]);
+        fscanf(fptr, "%lf %lf %lf %lf",&coords[i * 3],
+               &coords[(3*i)+1],&coords[(3*i)+2],&q[i]);
     }
     
     time1 = clock(); /*time after file read*/
@@ -125,15 +125,17 @@ int main(int argc, char *argv[])
     cut2 = pow(cut, 2);
     for (i=1; i<=natom; ++i)
     {
-	element1 = coords[i-1][1];
-	element2 = coords[i-1][2];
+	element0 = coords[(3*(i-1))]
+	element1 = coords[(3*(i-1))+1];
+	element2 = coords[(3*(i-1))+2];
 	element3 = q[i-1];
         for (j=1; j < i; ++j)
         {
            /* X^2 + Y^2 + Z^2 */
-           vector2[j] = pow((coords[i-1][0]-coords[j-1][0]),2.0) +
-           pow((element1-coords[j-1][1]),2.0) +
-           pow((element2-coords[j-1][2]),2.0);
+           vector2[j] = 
+	   pow(element0-coords[(3*(j-1))],2.0) +
+	   pow(element1-coords[(3*(j-1))+1],2.0) +
+	   pow(element2-coords[(3*(j-1))+2],2.0);
 	}
     	subtotal_e = 0.0;
 	for(j=1; j< i; ++j){
