@@ -1,0 +1,13 @@
+Value of system clock at start = 0
+Coordinates will be read from file: data25k.txt
+Natom = 25000
+cut =     0.5000
+Value of system clock after coord read = 50000
+Value of system clock after coord read and E calc = 24300000
+                         Final Results
+                         -------------
+                   Num Pairs = 85841052
+                     Total E = 361030028.7871981263
+     Time to read coord file =         0.0500 Seconds
+         Time to calculate E =        24.2500 Seconds
+        Total Execution Time =        24.3000 Seconds
