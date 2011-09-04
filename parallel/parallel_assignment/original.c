@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
     //double **coords;
     double *q, *vector2;
     double element0, element1, element2, element3;
-    double subtotal_e, total_e, current_e, vec2, rij;
+    double subtotal_e, total_e, current_e, rij;
     double a, one_by_a;
     FILE *fptr;
     char *cptr;
@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
     cut2 = pow(cut, 2);
     for (i=1; i<=natom; ++i)
     {
-	element0 = coords[(3*(i-1))]
+	element0 = coords[(3*(i-1))];
 	element1 = coords[(3*(i-1))+1];
 	element2 = coords[(3*(i-1))+2];
 	element3 = q[i-1];
@@ -137,8 +137,7 @@ int main(int argc, char *argv[])
 	   pow(element1-coords[(3*(j-1))+1],2.0) +
 	   pow(element2-coords[(3*(j-1))+2],2.0);
 	}
-    	subtotal_e = 0.0;
-	for(j=1; j< i; ++j){
+	for(j=1; j< i - 30; ++j){
            if (vector2[j] < cut2)
            {
                rij = sqrt(vector2[j]);
@@ -151,8 +150,7 @@ int main(int argc, char *argv[])
     }
     
     time2 = clock(); /* time after reading of file and calculation */
-    printf("Value of system clock after coord read and E calc = %ld\n",
-           time2);
+    printf("Value of system clock after coord read and E calc = %ld\n", time2);
     
     /* Step 6 - write out the results */
     printf("                         Final Results\n");
@@ -209,3 +207,4 @@ void double_2D_array_free(double **array)
     free(array[0]);
     free(array);
 }
+// gcc  -lm -O3 -g -Wall -ftree-vectorizer-verbose=5 -msse -msse2 -msse3 -march=native -mtune=native --std=c99 -fPIC -ffast-math original.c
