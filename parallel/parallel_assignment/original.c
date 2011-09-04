@@ -32,12 +32,13 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
+#define min(a,b) ((a) > (b) ? (a) : (b) 
 double **alloc_2D_double(int nrows, int ncolumns);
 void double_2D_array_free(double **array);
 
 int main(int argc, char *argv[])
 {
-    long natom, i, j;
+    long natom, i, j, p;
     long cut_count;
     
     /* Timer variables */
@@ -47,12 +48,12 @@ int main(int argc, char *argv[])
     double **coords;
     double *q;
     double total_e, current_e, vec2, rij;
-    double a;
+    double a, one_by_a;
     FILE *fptr;
     char *cptr;
     
     a = 3.2;
-    
+    one_by_a = 1/3.2;
     time0 = clock(); /*Start Time*/
     printf("Value of system clock at start = %ld\n",time0);
     
@@ -120,24 +121,26 @@ int main(int argc, char *argv[])
     cut_count = 0;
     for (i=1; i<=natom; ++i)
     {
-        for (j=1; j<=natom; ++j)
+	p = i < natom ? i : natom;
+        for (j=1; j < p; ++j)
         {
-            if ( j < i )   /* Avoid double counting. */
-            {
+            //if ( j < i )   /* Avoid double counting. */
+            //{
                 /* X^2 + Y^2 + Z^2 */
                 vec2 = pow((coords[0][i-1]-coords[0][j-1]),2.0) +
                 pow((coords[1][i-1]-coords[1][j-1]),2.0) +
                 pow((coords[2][i-1]-coords[2][j-1]),2.0);
-                rij = sqrt(vec2);
                 /* Check if this is below the cut off */
-                if ( rij < cut )
+                if ( vec2 < pow(cut,2) )
                 {
+                    rij = sqrt(vec2);
                     /* Increment the counter of pairs below cutoff */
                     ++cut_count;
-                    current_e = (exp(rij*q[i-1])*exp(rij*q[j-1]))/rij;
-                    total_e = total_e + current_e - 1.0/a;
+		    //current_e = (exp(rij*q[i-1])*exp(rij*q[j-1]))/rij;
+		    current_e = exp(rij*(q[i-1] + q[j-1]))/rij;
+                    total_e = total_e + current_e - one_by_a;
                 }
-            }
+            //}
         }
     }
     
