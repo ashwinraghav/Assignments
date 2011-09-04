@@ -38,16 +38,17 @@ void double_2D_array_free(double **array);
 
 int main(int argc, char *argv[])
 {
-    long natom, i, j, p;
+    long natom, i, j;
     long cut_count;
     
     /* Timer variables */
     clock_t time0, time1, time2;
     
-    double cut;     /* Cut off for Rij in distance units */
-    double **coords;
-    double *q;
-    double total_e, current_e, vec2, rij;
+    double cut, cut2;     /* Cut off for Rij in distance units */
+    //double **coords;
+    double *q, *vector2;
+    double element0, element1, element2, element3;
+    double subtotal_e, total_e, current_e, rij;
     double a, one_by_a;
     FILE *fptr;
     char *cptr;
@@ -90,13 +91,15 @@ int main(int argc, char *argv[])
     
     /* Step 3 - Allocate the arrays to store the coordinate and charge
      data */
-    coords=alloc_2D_double(3,natom);
+    //coords=alloc_2D_double(3,natom);
+    double coords[natom*3];
     if ( coords==NULL )
     {
         printf("Allocation error coords");
         exit(1);
     }
     q=(double *)malloc(natom*sizeof(double));
+    vector2=(double *)malloc(natom*sizeof(double));
     if ( q == NULL )
     {
         printf("Allocation error q");
@@ -107,8 +110,8 @@ int main(int argc, char *argv[])
     /* Step 4 - read the coordinates and charges. */
     for (i = 0; i<natom; ++i)
     {
-        fscanf(fptr, "%lf %lf %lf %lf",&coords[0][i],
-               &coords[1][i],&coords[2][i],&q[i]);
+        fscanf(fptr, "%lf %lf %lf %lf",&coords[i * 3],
+               &coords[(3*i)+1],&coords[(3*i)+2],&q[i]);
     }
     
     time1 = clock(); /*time after file read*/
@@ -119,34 +122,35 @@ int main(int argc, char *argv[])
      majority of the work. */
     total_e = 0.0;
     cut_count = 0;
+    cut2 = pow(cut, 2);
     for (i=1; i<=natom; ++i)
     {
-	p = i < natom ? i : natom;
-        for (j=1; j < p; ++j)
+	element0 = coords[(3*(i-1))];
+	element1 = coords[(3*(i-1))+1];
+	element2 = coords[(3*(i-1))+2];
+	element3 = q[i-1];
+        for (j=1; j < i; ++j)
         {
-            //if ( j < i )   /* Avoid double counting. */
-            //{
-                /* X^2 + Y^2 + Z^2 */
-                vec2 = pow((coords[0][i-1]-coords[0][j-1]),2.0) +
-                pow((coords[1][i-1]-coords[1][j-1]),2.0) +
-                pow((coords[2][i-1]-coords[2][j-1]),2.0);
-                /* Check if this is below the cut off */
-                if ( vec2 < pow(cut,2) )
-                {
-                    rij = sqrt(vec2);
-                    /* Increment the counter of pairs below cutoff */
-                    ++cut_count;
-		    //current_e = (exp(rij*q[i-1])*exp(rij*q[j-1]))/rij;
-		    current_e = exp(rij*(q[i-1] + q[j-1]))/rij;
-                    total_e = total_e + current_e - one_by_a;
-                }
-            //}
+           /* X^2 + Y^2 + Z^2 */
+           vector2[j] = 
+	   pow(element0-coords[(3*(j-1))],2.0) +
+	   pow(element1-coords[(3*(j-1))+1],2.0) +
+	   pow(element2-coords[(3*(j-1))+2],2.0);
+	}
+	for(j=1; j< i - 30; ++j){
+           if (vector2[j] < cut2)
+           {
+               rij = sqrt(vector2[j]);
+               ++cut_count;
+	       current_e = (exp(rij*(element3 + q[j-1])))/rij;
+               total_e = total_e + current_e - one_by_a;
+          }
         }
+	
     }
     
     time2 = clock(); /* time after reading of file and calculation */
-    printf("Value of system clock after coord read and E calc = %ld\n",
-           time2);
+    printf("Value of system clock after coord read and E calc = %ld\n", time2);
     
     /* Step 6 - write out the results */
     printf("                         Final Results\n");
@@ -164,7 +168,7 @@ int main(int argc, char *argv[])
      return values here but for the purposes of this tutorial we can
      ignore this. */
     free(q);
-    double_2D_array_free(coords);
+    //double_2D_array_free(coords);
     
     fclose(fptr);
     
@@ -203,3 +207,4 @@ void double_2D_array_free(double **array)
     free(array[0]);
     free(array);
 }
+// gcc  -lm -O3 -g -Wall -ftree-vectorizer-verbose=5 -msse -msse2 -msse3 -march=native -mtune=native --std=c99 -fPIC -ffast-math original.c
