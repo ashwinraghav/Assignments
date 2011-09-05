@@ -1,0 +1,13 @@
+This directory contains files showing sample usage of AMD LibM
+library functions. C and C++ examples are provided.  In particular,
+different flavors of the cbrt function have been illustrated.
+
+Also, examples on how to replace compiler provided math functions
+(from math.h) with AMD LibM functions are presented.
+
+Use build_and_run.sh on Linux platforms. Ensure gcc/g++ build
+tools are in your path.
+
+Use build_and_run.bat on Windows platforms. Ensure MSVC build
+tools are in your path.
+

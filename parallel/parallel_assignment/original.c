@@ -1,33 +1,4 @@
-/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- ! AshwinBad coding example 1
- !
- ! Shamefully written by Ross Walker (SDSC, 2006)
- !
- ! This code reads a series of coordinates and charges from the file
- ! specified as argument $1 on the command line.
- !
- ! This file should have the format:
- !  I9
- ! 4F10.4   (repeated I9 times representing x,y,z,q)
- !
- ! It then calculates the following fictional function:
- !
- !             exp(rij*qi)*exp(rij*qj)   1
- !    E = Sum( ----------------------- - - )  (rij <= cut)
- !        j<i           r(ij)            a
- !
- ! where cut is a cut off value specified on the command line ($2),
- ! r(ij) is a function of the coordinates read in for each atom and
- ! a is a constant.
- !
- ! The code prints out the number of atoms, the cut off, total number of
- ! atom pairs which were less than or equal to the distance cutoff, the
- ! value of E, the time take to generate the coordinates and the time
- ! taken to perform the calculation of E.
- !
- ! All calculations are done in double precision.
- !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-
+/*Ashwin Raghav Mohan Ganesh tried optimizing this. You should give it a shot too!*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
