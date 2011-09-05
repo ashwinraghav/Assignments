@@ -7,4 +7,5 @@
 #PBS -M am2qa@virginia.edu
  
 cd $PBS_O_WORKDIR
-./a.out data25k.txt 0.5
+gcc  -lm original.c && ./a.out data25k.txt 0.5 && ./a.out data25k.txt 0.5
+

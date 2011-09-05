@@ -1,0 +1,51 @@
+!*****************************************************************************
+!Mathematical Acceleration Subsystem Component V4.1                           
+!                                                                             
+!Licensed Materials - Property of IBM                                         
+!5724-K76	                                                             
+!(C) Copyright IBM Corporation 1985, 2004.  All Rights Reserved.              
+!US Government Users Restricted Rights - Use, duplication or                  
+!disclosure restricted by GSA ADP Schedule Contract with IBM Corp.            
+!*****************************************************************************
+
+c Fortran interface block for Linux MASS vector functions:
+
+      interface     
+
+      subroutine vrec (y, x, n)
+        real*8 y(*), x(*)
+        integer n
+c       Sets y(i) to the reciprocal of x(i), for i=1,..,n 
+      end subroutine vrec
+      
+      subroutine vsqrt (y, x, n)
+        real*8 y(*), x(*)
+        integer n
+c       Sets y(i) to the square root of x(i), for i=1,..,n 
+      end subroutine vsqrt
+
+      subroutine vrsqrt (y, x, n)
+        real*8 y(*), x(*)
+        integer n
+c       Sets y(i) to the reciprocal of the square root of x(i), for i=1,..,n 
+      end subroutine vrsqrt
+
+      subroutine vsrec (y, x, n)
+        real*4 y(*), x(*)
+        integer n
+c       Sets y(i) to the reciprocal of x(i), for i=1,..,n 
+      end subroutine vsrec
+      
+      subroutine vssqrt (y, x, n)
+        real*4 y(*), x(*)
+        integer n
+c       Sets y(i) to the square root of x(i), for i=1,..,n 
+      end subroutine vssqrt
+
+      subroutine vsrsqrt (y, x, n)
+        real*4 y(*), x(*)
+        integer n
+c       Sets y(i) to the reciprocal of the square root of x(i), for i=1,..,n 
+      end subroutine vsrsqrt
+
+      end interface
