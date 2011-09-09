@@ -1,8 +1,7 @@
 (* Graduate Programming Languages - Wes Weimer
  * 
- * YOUR NAME HERE (write your name here so that if the files get mixed up
- * somehow I can still give you credit for your work)
- *  
+ * Ashwin Raghav Mohan Ganesh
+ * UVA Id - am2qa 
  * Edit this file according to the instructions in the homework and then
  * submit a renamed copy of it. Name the copy "your_id-hw1.ml". 
  *)
@@ -63,6 +62,10 @@ let rec eval_bexp (b:bexp) (sigma:state) : t = match b with
 (* Evaluates a com given the state 'sigma'. *) 
 let rec eval_com (c:com) (sigma:state) : state = match c with
   | Skip -> sigma
-  | _ -> 
-    (* you must put real code here *)
-    Printf.printf "Warning! Com not yet implemented!\n" ; sigma 
+  | Print (b:bexp) -> 
+	let value = eval_bexp b sigma in 
+	Printf.printf "%d" value
+  | Print (a:aexp) -> 
+	let value = eval_aexp a sigma in 
+	Printf.printf "%d" value
+
