@@ -96,28 +96,28 @@ int main(int argc, char *argv[])
     cut2 = pow(cut, 2);
     for (i=1; i<=natom; ++i)
     {
-	element0 = coords[(3*(i-1))];
-	element1 = coords[(3*(i-1))+1];
-	element2 = coords[(3*(i-1))+2];
-	element3 = q[i-1];
+        element0 = coords[(3*(i-1))];
+        element1 = coords[(3*(i-1))+1];
+        element2 = coords[(3*(i-1))+2];
+        element3 = q[i-1];
         for (j=1; j < i; ++j)
         {
-           /* X^2 + Y^2 + Z^2 */
-           vector2[j] = 
-	   pow(element0-coords[(3*(j-1))],2.0) +
-	   pow(element1-coords[(3*(j-1))+1],2.0) +
-	   pow(element2-coords[(3*(j-1))+2],2.0);
-	}
-	for(j=1; j< i - 30; ++j){
-           if (vector2[j] < cut2)
-           {
-               rij = sqrt(vector2[j]);
-               ++cut_count;
-	       current_e = (exp(rij*(element3 + q[j-1])))/rij;
-               total_e = total_e + current_e - one_by_a;
-          }
+            /* X^2 + Y^2 + Z^2 */
+            vector2[j] = 
+            pow(element0-coords[(3*(j-1))],2.0) +
+            pow(element1-coords[(3*(j-1))+1],2.0) +
+            pow(element2-coords[(3*(j-1))+2],2.0);
         }
-	
+        for(j=1; j< i - 30; ++j){
+            if (vector2[j] < cut2)
+            {
+                rij = sqrt(vector2[j]);
+                ++cut_count;
+                current_e = (exp(rij*(element3 + q[j-1])))/rij;
+                total_e = total_e + current_e - one_by_a;
+            }
+        }
+        
     }
     
     time2 = clock(); /* time after reading of file and calculation */
