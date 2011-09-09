@@ -1,8 +1,7 @@
 (* Graduate Programming Languages - Wes Weimer
  * 
- * YOUR NAME HERE (write your name here so that if the files get mixed up
- * somehow I can still give you credit for your work)
- *  
+ * Ashwin Raghav Mohan Ganesh
+ * UVA Id - am2qa 
  * Edit this file according to the instructions in the homework and then
  * submit a renamed copy of it. Name the copy "your_id-hw1.ml". 
  *)
@@ -30,10 +29,13 @@ let initial_state () : state = Hashtbl.create 255
 
 (* Given a state sigma, return the current value associated with
  * 'variable'. For our purposes all uninitialized variables start at 0. *)
+let insert (sigma:state) (variable:loc) (a:aexp) =
+    Hashtbl.add sigma variable 1
 let lookup (sigma:state) (variable:loc) : n = 
   try
     Hashtbl.find sigma variable 
   with Not_found -> 0 
+
 
 (* Evaluates an aexp given the state 'sigma'. *) 
 let rec eval_aexp (a:aexp) (sigma:state) : n = match a with
@@ -63,6 +65,8 @@ let rec eval_bexp (b:bexp) (sigma:state) : t = match b with
 (* Evaluates a com given the state 'sigma'. *) 
 let rec eval_com (c:com) (sigma:state) : state = match c with
   | Skip -> sigma
-  | _ -> 
-    (* you must put real code here *)
-    Printf.printf "Warning! Com not yet implemented!\n" ; sigma 
+  | Print (a) -> 
+	let value = eval_aexp a sigma in 
+	Printf.printf "%d" value;sigma
+  | Set (loc, a) ->
+	insert sigma loc a;
