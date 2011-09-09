@@ -29,10 +29,13 @@ let initial_state () : state = Hashtbl.create 255
 
 (* Given a state sigma, return the current value associated with
  * 'variable'. For our purposes all uninitialized variables start at 0. *)
+let insert (sigma:state) (variable:loc) (a:aexp) =
+    Hashtbl.add sigma variable 1
 let lookup (sigma:state) (variable:loc) : n = 
   try
     Hashtbl.find sigma variable 
   with Not_found -> 0 
+
 
 (* Evaluates an aexp given the state 'sigma'. *) 
 let rec eval_aexp (a:aexp) (sigma:state) : n = match a with
@@ -62,10 +65,8 @@ let rec eval_bexp (b:bexp) (sigma:state) : t = match b with
 (* Evaluates a com given the state 'sigma'. *) 
 let rec eval_com (c:com) (sigma:state) : state = match c with
   | Skip -> sigma
-  | Print (b:bexp) -> 
-	let value = eval_bexp b sigma in 
-	Printf.printf "%d" value
-  | Print (a:aexp) -> 
+  | Print (a) -> 
 	let value = eval_aexp a sigma in 
-	Printf.printf "%d" value
-
+	Printf.printf "%d" value;sigma
+  | Set (loc, a) ->
+	insert sigma loc a;
