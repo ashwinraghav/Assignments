@@ -48,7 +48,7 @@ main.cmx : hw1.cmi hw1.ml parse.cmi
 
 .PHONY: test1 test2
 
-test: all test1 test2 test3 test4 
+test: all test1 test2 test3 test4, test5 
 
 TEST1 = "'print 1 + 2'" 
 test1:
@@ -73,6 +73,12 @@ test4:
 	@echo "33 678" > test-answer
 	@echo "$(TEST4)" | ./imp --silent > test-result
 	@if diff -b -w test-result test-answer ; then echo "*** test4 passed" ; else echo "*** test4 FAILED: $(TEST4)" ; fi 
+
+TEST5 = "'x := 678 ; { let x = 33 in let y = x+10 in print y } ; print x'"
+test5:
+	@echo "43 678" > test-answer
+	@echo "$(TEST5)" | ./imp --silent > test-result
+	@if diff -b -w test-result test-answer ; then echo "*** test5 passed" ; else echo "*** test5 FAILED: $(TEST5)" ; fi 
 
 # Your project will be graded using: 
 #
