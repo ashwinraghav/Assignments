@@ -65,8 +65,10 @@ let rec eval_bexp (b:bexp) (sigma:state) : t = match b with
 (* Evaluates a com given the state 'sigma'. *) 
 let rec eval_com (c:com) (sigma:state) : state = match c with
   | Skip -> sigma
-  | Print (a) -> 
+  | Print (a:aexp) -> 
 	let value = eval_aexp a sigma in 
 	Printf.printf "%d" value;sigma
   | Set (loc, a) ->
-	insert sigma loc a;
+	Printf.printf "as";sigma
+  | _->
+	Printf.printf "not yet implemented";sigma
