@@ -29,6 +29,12 @@ let initial_state () : state = Hashtbl.create 255
 
 (* Given a state sigma, return the current value associated with
  * 'variable'. For our purposes all uninitialized variables start at 0. *)
+let find_all (sigma:state) (variable:loc) =
+    Hashtbl.find_all sigma variable
+
+let replace (sigma:state) (variable:loc) (a) : state =
+    Hashtbl.replace sigma variable a ;sigma
+
 let insert (sigma:state) (variable:loc) (a) : state =
     Hashtbl.add sigma variable a ;sigma
 
@@ -64,7 +70,7 @@ let rec eval_com (c:com) (sigma:state) : state = match c with
   | Skip -> sigma
   | Set(id, aexp) ->
 	let value = eval_aexp aexp sigma in
-	insert sigma id value;sigma
+	replace sigma id value;sigma
   | Seq(com1, com2)  -> eval_com com2 (eval_com com1 sigma)
   | If(bexp, com1, com2) ->
       if eval_bexp bexp sigma then eval_com com1 sigma else eval_com com2 sigma
@@ -77,9 +83,9 @@ let rec eval_com (c:com) (sigma:state) : state = match c with
         let value = eval_aexp a sigma in
         Printf.printf "%d" value;sigma
   | Let (loc, aexp, com) ->
-        let value = eval_aexp aexp sigma in
+	let value = eval_aexp aexp sigma in
 	insert sigma loc value;
 	eval_com com sigma;
-	remove sigma loc; sigma
+	remove sigma loc;
   | _->
 	Printf.printf "not yet implemented";sigma

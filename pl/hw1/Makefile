@@ -48,11 +48,11 @@ main.cmx : hw1.cmi hw1.ml parse.cmi
 
 .PHONY: test1 test2
 
-test: all test1 test2 test3 test4, test5 
+test: all test1 test2 test3 test4 test5 test6 test7 test8 test9
 
-TEST1 = "'print 1 + 2'" 
+TEST1 = "'print (1 + 2) * 3'" 
 test1:
-	@echo "3" > test-answer
+	@echo "9" > test-answer
 	@echo "$(TEST1)" | ./imp --silent > test-result
 	@if diff -b -w test-result test-answer ; then echo "*** test1 passed" ; else echo "*** test1 FAILED: $(TEST1)" ; fi 
 
@@ -80,6 +80,29 @@ test5:
 	@echo "$(TEST5)" | ./imp --silent > test-result
 	@if diff -b -w test-result test-answer ; then echo "*** test5 passed" ; else echo "*** test5 FAILED: $(TEST5)" ; fi 
 
+TEST6 = "' x := 1 ; y := 2 ;{ let x = 3 in print x ; print y ; x := 4 ;y := 5 } ; print x ; print y'"
+test6:
+	@echo "3215" > test-answer
+	@echo "$(TEST6)" | ./imp --silent > test-result
+	@if diff -b -w test-result test-answer ; then echo "*** test6 passed" ; else echo "*** test6 FAILED: $(TEST6)" ; fi 
+
+TEST7 = "' x := 1 ; y := 2 ;{ let x = 3 in {let x = 6 in print x ; print y ; x := 4 ;y := 5  ; print y } ; print x ; print y};print x'"
+test7:
+	@echo "625351" > test-answer
+	@echo "$(TEST7)" | ./imp --silent > test-result
+	@if diff -b -w test-result test-answer ; then echo "*** test7 passed" ; else echo "*** test7 FAILED: $(TEST7)" ; fi 
+
+TEST8 = "'i := 0 ; {while  i <= 5 && 5 <= 6  do { x := i; {let i = 6 in print x+i}; i := i+1}}'"
+test8:
+	@echo "67891011" > test-answer
+	@echo "$(TEST8)" | ./imp --silent > test-result
+	@if diff -b -w test-result test-answer ; then echo "*** test8 passed" ; else echo "*** test8 FAILED: $(TEST8)" ; fi 
+
+TEST9 = "' x := 1 ; y := 2 ;{ let x = 3 in print x ; {let x = x + 2 in print x ; x := 4 ;y := 5  ;print x; print y } ; print x ; print y};print x'"
+test9:
+	@echo "3545351" > test-answer
+	@echo "$(TEST9)" | ./imp --silent > test-result
+	@if diff -b -w test-result test-answer ; then echo "*** test9 passed" ; else echo "*** test9 FAILED: $(TEST9)" ; fi 
 # Your project will be graded using: 
 #
 #	./imp --silent < example-imp-command > test-result
