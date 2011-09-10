@@ -1,0 +1,70 @@
+Compiled with Python version 2.6.5.
+Checking for installed Python... got it!
+Old particle system converted to new system.
+Old particle system converted to new system.
+Old particle system converted to new system.
+Old particle system converted to new system.
+Old particle system converted to new system.
+Old particle system converted to new system.
+Old particle system converted to new system.
+Old particle system converted to new system.
+Old particle system converted to new system.
+Old particle system converted to new system.
+Old particle system converted to new system.
+Fra:1 Mem:3.54M | Preparing Scene data
+Fra:1 Mem:6.05M | Preparing Scene data
+Fra:1 Mem:46.47M | Creating Shadowbuffers
+Fra:1 Mem:46.47M | SSS preprocessing
+Fra:1 Mem:46.47M Sce: 1 Ve:5173 Fa:3260 Ha:9 La:1
+Fra:1 Mem:63.01M | Part 1-4
+Fra:1 Mem:60.04M | Part 2-4
+Fra:1 Mem:79.70M | Part 3-4
+Fra:1 Mem:63.86M | Part 4-4
+Fra:1 Mem:17.94M Sce: 1 Ve:5173 Fa:3260 Ha:9 La:1
+Saved: star-collapse-0001 Time: 00:02.00
+Fra:2 Mem:17.99M | Preparing Scene data
+Fra:2 Mem:20.48M | Preparing Scene data
+Fra:2 Mem:60.90M | Creating Shadowbuffers
+Fra:2 Mem:60.90M | SSS preprocessing
+Fra:2 Mem:60.90M Sce: 1 Ve:5185 Fa:3280 Ha:25 La:1
+Fra:2 Mem:66.83M | Part 1-4
+Fra:2 Mem:63.87M | Part 2-4
+Fra:2 Mem:79.70M | Part 3-4
+Fra:2 Mem:63.87M | Part 4-4
+Fra:2 Mem:17.94M Sce: 1 Ve:5185 Fa:3280 Ha:25 La:1
+Saved: star-collapse-0002 Time: 00:04.17
+Fra:3 Mem:17.99M | Preparing Scene data
+Fra:3 Mem:20.48M | Preparing Scene data
+Fra:3 Mem:60.90M | Creating Shadowbuffers
+Fra:3 Mem:60.90M | SSS preprocessing
+Fra:3 Mem:60.90M Sce: 1 Ve:5197 Fa:3300 Ha:47 La:1
+Fra:3 Mem:67.29M | Part 1-4
+Fra:3 Mem:67.79M | Part 2-4
+Fra:3 Mem:69.11M | Part 3-4
+Fra:3 Mem:63.87M | Part 4-4
+Fra:3 Mem:17.94M Sce: 1 Ve:5197 Fa:3300 Ha:47 La:1
+Saved: star-collapse-0003 Time: 00:03.36
+Fra:4 Mem:17.99M | Preparing Scene data
+Fra:4 Mem:20.48M | Preparing Scene data
+Fra:4 Mem:60.90M | Creating Shadowbuffers
+Fra:4 Mem:60.90M | SSS preprocessing
+Fra:4 Mem:60.90M Sce: 1 Ve:5209 Fa:3320 Ha:63 La:1
+Fra:4 Mem:78.36M | Part 2-4
+Fra:4 Mem:70.64M | Part 1-4
+Fra:4 Mem:79.70M | Part 4-4
+Fra:4 Mem:63.87M | Part 3-4
+Fra:4 Mem:17.94M Sce: 1 Ve:5209 Fa:3320 Ha:63 La:1
+Saved: star-collapse-0004 Time: 00:03.61
+Fra:5 Mem:17.99M | Preparing Scene data
+Fra:5 Mem:20.48M | Preparing Scene data
+Fra:5 Mem:60.90M | Creating Shadowbuffers
+Fra:5 Mem:60.90M | SSS preprocessing
+Fra:5 Mem:60.90M Sce: 1 Ve:5221 Fa:3340 Ha:85 La:1
+Fra:5 Mem:78.36M | Part 2-4
+Fra:5 Mem:70.76M | Part 1-4
+Fra:5 Mem:79.70M | Part 4-4
+Fra:5 Mem:63.87M | Part 3-4
+Fra:5 Mem:17.94M Sce: 1 Ve:5221 Fa:3340 Ha:85 La:1
+Saved: star-collapse-0005 Time: 00:03.28
+
+Blender quit
