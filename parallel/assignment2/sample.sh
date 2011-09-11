@@ -1,9 +1,4 @@
-#!/bin/bash
-#
-# This is a sample script that will create 8 other jobs (that really
-# don't do much), and send them through qsub
-
-NODES=8
+NODES=250
 
 if [ "$PBS_ENVIRONMENT" != "" ] ; then
     echo Ack!  Launched via a qsub -- not continuing
@@ -11,17 +6,52 @@ if [ "$PBS_ENVIRONMENT" != "" ] ; then
 fi
 
 for (( i = 1; i <= $NODES; i++ )); do
-    echo "Creating job for node $i..."
-    echo "#!/bin/bash" > job-$i.pbs
-    echo "#PBS -l nodes=1" >> job-$i.pbs
-    echo "#PBS -l walltime=0:05:00" >> job-$i.pbs
-    echo "hostname" >> job-$i.pbs
-    qsub job-$i.pbs
-    /bin/rm -f job-$i.pbs
+	echo "Creating job for node $i..."
+	rm -rf output-$i
+	PBS_DIR="output-$i"
+	PBS_FILE="$PBS_DIR/job-$i.pbs"
+	#PBS_FILE="job-$i.pbs"
+	`mkdir $PBS_DIR`
+	`touch $PBS_FILE`
+	echo "#!/bin/sh" >  $PBS_FILE
+	echo "#PBS -l nodes=1:ppn=1" >>  $PBS_FILE
+	echo "#PBS -l walltime=12:00:00" >>  $PBS_FILE
+	echo "#PBS -o output.txt" >>  $PBS_FILE
+	echo "#PBS -j oe" >>  $PBS_FILE
+	echo "#PBS -m ea" >>  $PBS_FILE
+	echo "#PBS -M am2qa@virginia.edu" >>  $PBS_FILE
+	echo "cd \$PBS_O_WORKDIR" >>  $PBS_FILE
+done
+
+for (( i = 1; i <= 250; i++ )); do
+	PBS_DIR="output-$(($i % $NODES + 1))"
+	PBS_FILE="$PBS_DIR/job-$(($i % $NODES + 1)).pbs"
+	echo "/usr/bin/blender -b ../Star-collapse-ntsc.blend -s $i -e $i -a" >> $PBS_FILE
+done
+
+for (( i = 1; i <= $NODES; i++ )); do
+	PBS_DIR="output-$i"
+	PBS_FILE="job-$i.pbs"
+	#PBS_FILE="job-$i.pbs"
+	cd $PBS_DIR
+	qsub $PBS_FILE
+	cd ..
 done
 
 
-#
+FRAME_COUNT=$((250/$NODES))
+
+START=$(date +%s)
+for (( i = 1; i <= $NODES; i++ )); do
+	while true; do
+		DONE_COUNT=`ls output-$i/star-collapse-* 2> NUL |wc -l`
+		if (($DONE_COUNT >= $FRAME_COUNT)); then echo "DONE!!"; break; fi
+		#if diff -b -w test_result test_answer > NUL ; then echo "*** done" ; break; fi 
+	done
+done
+END=$(date +%s)
+DIFF=$(( $END - $START ))
+echo "It took $DIFF seconds wall time"
 # note that there is another format for for loops in bash:
 #
 # for i in cheese apple crackers
