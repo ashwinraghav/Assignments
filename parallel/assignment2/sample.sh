@@ -9,10 +9,11 @@ rm -rf output-*
 
 for (( i = 1; i <= $NODES; i++ )); do
 	#echo "Creating job for node $i..."
-	PBS_DIR="doutput-$i"
-	PBS_FILE="$PBS_DIR/job-$i.pbs"
+	#PBS_DIR="output-$i"
+	#PBS_FILE="$PBS_DIR/job-$i.pbs"
+	PBS_FILE="job-$i.pbs"
 	#PBS_FILE="job-$i.pbs"
-	`mkdir $PBS_DIR`
+	#`mkdir $PBS_DIR`
 	`touch $PBS_FILE`
 	echo "#!/bin/sh" >  $PBS_FILE
 	echo "#PBS -l nodes=1:ppn=1" >>  $PBS_FILE
@@ -25,30 +26,34 @@ for (( i = 1; i <= $NODES; i++ )); do
 done
 
 for (( i = 1; i <= 250; i++ )); do
-	PBS_DIR="doutput-$(($i % $NODES + 1))"
-	PBS_FILE="$PBS_DIR/job-$(($i % $NODES + 1)).pbs"
-	echo "/usr/bin/blender -b ../Star-collapse-ntsc.blend -s $i -e $i -a" >> $PBS_FILE
+	#PBS_DIR="output-$((($i % $NODES)  + 1))"
+	#PBS_FILE="$PBS_DIR/job-$(($i % $NODES + 1)).pbs"
+	PBS_FILE="job-$(($i % $NODES + 1)).pbs"
+	#echo "/usr/bin/blender -b ../Star-collapse-ntsc.blend -s $i -e $i -a" >> $PBS_FILE
+	echo "/usr/bin/blender -b Star-collapse-ntsc.blend -s $i -e $i -a" >> $PBS_FILE
 done
 
 for (( i = 1; i <= $NODES; i++ )); do
-	PBS_DIR="doutput-$i"
+	#PBS_DIR="output-$i"
 	PBS_FILE="job-$i.pbs"
 	#PBS_FILE="job-$i.pbs"
-	cd $PBS_DIR
+	#cd $PBS_DIR
 	qsub $PBS_FILE
-	cd ..
+	#cd ..
 done
 
-FRAME_COUNT=$((250/$NODES))
+#FRAME_COUNT=$((250/$NODES))
+FRAME_COUNT=250
 
 START=$(date +%s)
-for (( i = 1; i <= $NODES; i++ )); do
+#for (( i = 1; i <= $NODES; i=$i+2 )); do
 	while true; do
-		DONE_COUNT=`ls doutput-$i/star-collapse-* 2> NUL |wc -l`
+		#DONE_COUNT=`ls output-$i/star-collapse-* 2> NUL |wc -l`
+		DONE_COUNT=`ls star-collapse-* 2> NUL |wc -l`
 		if (($DONE_COUNT >= $FRAME_COUNT)); then echo "DONE!!"; break; fi
 		#if diff -b -w test_result test_answer > NUL ; then echo "*** done" ; break; fi 
 	done
-done
+#done
 END=$(date +%s)
 DIFF=$(( $END - $START ))
 echo "It took $DIFF seconds wall time"
