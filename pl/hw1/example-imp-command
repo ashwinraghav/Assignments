@@ -1,4 +1,3 @@
-/* this is just "test3" from the makefile */
-/* YOUR NAME HERE -- put your name in a comment so that if this file
-   gets mixed up I can still give you credit for it */ 
-{while i <= 5 do { total := total + (i*i) ; i := i + 1 }} ; print total
+/* ASHWIN RAGHAV MOHAN GANESH ----- am2qa*/ 
+{while i <= 2 do{ let x = 3 in {let i = 6 in print i ; print y ; i := 4; y := 5  ; print y; x := 100 };  {let x = x+3 in p:=x; print p; i := i+1};{let x = 6 in print x}}};if y<=5 then {print p} else{print x}
+/*should print 605103665510366551036103*/

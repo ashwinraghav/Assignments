@@ -48,11 +48,11 @@ main.cmx : hw1.cmi hw1.ml parse.cmi
 
 .PHONY: test1 test2
 
-test: all test1 test2 test3 test4 test5 test6 test7 test8 test9
+test: all test1 test2 test3 test4 test5 test6 test7 test8 test9 test10
 
-TEST1 = "'print (1 + 2) * 3'" 
+TEST1 = "'if 3<=3 then{print 2+3}else{print 2*3}'" 
 test1:
-	@echo "9" > test-answer
+	@echo "5" > test-answer
 	@echo "$(TEST1)" | ./imp --silent > test-result
 	@if diff -b -w test-result test-answer ; then echo "*** test1 passed" ; else echo "*** test1 FAILED: $(TEST1)" ; fi 
 
@@ -98,11 +98,17 @@ test8:
 	@echo "$(TEST8)" | ./imp --silent > test-result
 	@if diff -b -w test-result test-answer ; then echo "*** test8 passed" ; else echo "*** test8 FAILED: $(TEST8)" ; fi 
 
-TEST9 = "' x := 1 ; y := 2 ;{ let x = 3 in print x ; {let x = x + 2 in print x ; x := 4 ;y := 5  ;print x; print y } ; print x ; print y};print x'"
+TEST9 = "' x := 1 ; y := 2 ;{ let x = 3 in print x ; y := 4; {let x = x + y in print x ; x := 4 ;y := 5  ;print x; print y } ; print x ; print y};print x'"
 test9:
-	@echo "3545351" > test-answer
+	@echo "3745351" > test-answer
 	@echo "$(TEST9)" | ./imp --silent > test-result
 	@if diff -b -w test-result test-answer ; then echo "*** test9 passed" ; else echo "*** test9 FAILED: $(TEST9)" ; fi 
+
+TEST10 = "'{while i <= 2 do{ let x = 3 in {let i = 6 in print i ; print y ; i := 4; y := 5  ; print y; x := 100 };  {let x = x+3 in p:=x; print p; i := i+1};{let x = 6 in print x}}};print total'" 
+test10:
+	@echo "6051036655103665510360" > test-answer
+	@echo "$(TEST10)" | ./imp --silent > test-result
+	@if diff -b -w test-result test-answer ; then echo "*** test10 passed" ; else echo "*** test10 FAILED: $(TEST10)" ; fi 
 # Your project will be graded using: 
 #
 #	./imp --silent < example-imp-command > test-result
