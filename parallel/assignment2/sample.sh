@@ -1,4 +1,4 @@
-NODES=100
+NODES=
 
 if [ "$PBS_ENVIRONMENT" != "" ] ; then
     echo Ack!  Launched via a qsub -- not continuing
@@ -23,7 +23,12 @@ for (( i = 1; i <= $NODES; i++ )); do
 	echo "cp Star-collapse-ntsc.blend \$TMPDIR" >> $PBS_FILE
 done
 
-for (( i = 1; i <= 250; i++ )); do
+for (( i = 0; i < 110; i++ )); do
+	PBS_FILE="job-$(($i % $NODES + 1)).pbs"
+	echo "\$TMPDIR/blender -b \$TMPDIR/Star-collapse-ntsc.blend -s $((($i*2) + 1)) -e $((($i+1)*2)) -a" >> $PBS_FILE
+done
+
+for (( i = 221; i <= 250; i++ )); do
 	PBS_FILE="job-$(($i % $NODES + 1)).pbs"
 	echo "\$TMPDIR/blender -b \$TMPDIR/Star-collapse-ntsc.blend -s $i -e $i -a" >> $PBS_FILE
 done
