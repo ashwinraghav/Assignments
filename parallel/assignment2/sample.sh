@@ -33,7 +33,7 @@ for (( i = 1; i <= 250; i++ )); do
 		Y=$((($Y+1)%$NODES));
 	fi
 	echo $PBS_FILE
-	echo "\$TMPDIR/blender -b \$TMPDIR/Star-collapse-ntsc.blend -s $i -e $i" >> $PBS_FILE
+	echo "\$TMPDIR/blender -b \$TMPDIR/Star-collapse-ntsc.blend -s $i -e $i -a" >> $PBS_FILE
 done
 
 for (( i = 1; i <= $NODES; i++ )); do
