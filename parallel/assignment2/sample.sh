@@ -1,4 +1,4 @@
-NODES=16
+NODES=8
 
 if [ "$PBS_ENVIRONMENT" != "" ] ; then
     echo Ack!  Launched via a qsub -- not continuing
@@ -7,12 +7,12 @@ fi
 
 rm -rf output-*
 rm star-*
-
+rm job-*
 for (( i = 1; i <= $NODES; i++ )); do
 	PBS_FILE="job-$i.pbs"
 	`touch $PBS_FILE`
 	echo "#!/bin/sh" >  $PBS_FILE
-	echo "#PBS -l nodes=2:ppn=1" >>  $PBS_FILE
+	echo "#PBS -l nodes=1:ppn=1" >>  $PBS_FILE
 	echo "#PBS -l walltime=12:00:00" >>  $PBS_FILE
 	echo "#PBS -o output.txt" >>  $PBS_FILE
 	echo "#PBS -j oe" >>  $PBS_FILE
@@ -41,7 +41,6 @@ START=$(date +%s)
 		DONE_COUNT=`ls star-collapse-* 2> NUL |wc -l`
 		if (($DONE_COUNT >= $FRAME_COUNT)); then echo "DONE!!"; break; fi
 	done
-#done
 END=$(date +%s)
 DIFF=$(( $END - $START ))
 echo "It took $DIFF seconds wall time"
