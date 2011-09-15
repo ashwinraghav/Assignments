@@ -1,0 +1,4 @@
+/* this is just "test3" from the makefile */
+/* YOUR NAME HERE -- put your name in a comment so that if this file
+   gets mixed up I can still give you credit for it */ 
+{while i <= 5 do { total := total + (i*i) ; i := i + 1 }} ; print total
