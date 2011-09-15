@@ -22,10 +22,18 @@ for (( i = 1; i <= $NODES; i++ )); do
 	echo "cp /usr/bin/blender \$TMPDIR" >> $PBS_FILE
 	echo "cp Star-collapse-ntsc.blend \$TMPDIR" >> $PBS_FILE
 done
-
-for (( i = 0; i < 125; i++ )); do
-	PBS_FILE="job-$(($i % $NODES + 1)).pbs"
-	echo "\$TMPDIR/blender -b \$TMPDIR/Star-collapse-ntsc.blend -s $((($i*2) + 1)) -e $((($i+1)*2)) -a" >> $PBS_FILE
+X=1
+Y=0
+for (( i = 1; i <= 250; i++ )); do
+	if ((($i%2) == 0));then 
+		PBS_FILE="job-$X.pbs";
+		X=$((($X+1)%$NODES));
+	else 
+		PBS_FILE="job-$(($NODES-$Y)).pbs";
+		Y=$((($Y+1)%$NODES));
+	fi
+	echo $PBS_FILE
+	echo "\$TMPDIR/blender -b \$TMPDIR/Star-collapse-ntsc.blend -s $i -e $i" >> $PBS_FILE
 done
 
 for (( i = 1; i <= $NODES; i++ )); do
@@ -34,7 +42,6 @@ for (( i = 1; i <= $NODES; i++ )); do
 done
 
 FRAME_COUNT=250
-
 
 START=$(date +%s)
 	while true; do
