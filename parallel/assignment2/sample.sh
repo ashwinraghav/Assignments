@@ -22,11 +22,11 @@ for (( i = 1; i <= $NODES; i++ )); do
 	echo "cp /usr/bin/blender \$TMPDIR" >> $PBS_FILE
 	echo "cp Star-collapse-ntsc.blend \$TMPDIR" >> $PBS_FILE
 done
-X=1
+X=0
 Y=0
 for (( i = 1; i <= 250; i++ )); do
 	if ((($i%2) == 0));then 
-		PBS_FILE="job-$X.pbs";
+		PBS_FILE="job-$(($X+1)).pbs";
 		X=$((($X+1)%$NODES));
 	else 
 		PBS_FILE="job-$(($NODES-$Y)).pbs";
