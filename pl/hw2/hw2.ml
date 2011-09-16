@@ -19,60 +19,95 @@
 
 open Imp (* imp.ml has the definitions for our IMP datatypes *) 
 
-(* 
- * Our operational semantics has a notion of 'state' (sigma). The type
- * 'state' is a side-effect-ful mapping from 'loc' to 'n'.
- * 
- * See http://caml.inria.fr/pub/docs/manual-ocaml/libref/Hashtbl.html
- *)
 type state = (loc, n) Hashtbl.t
 
-(* 
- * A command may either terminate normally (as before) OR it may terminate
- * exceptionally (and the exception has an integer value).
- *)
 type termination = 
   | Normal      of state
   | Exceptional of state * n 
 
-let initial_state () : state = Hashtbl.create 255 
+let initial_state () : state = Hashtbl.create 255
 
-(* Given a state sigma, return the current value associated with
- * 'variable'. For our purposes all uninitialized variables start at 0. *)
-let lookup (sigma:state) (variable:loc) : n = 
+let find_all (sigma:state) (variable:loc) =
+    Hashtbl.find_all sigma variable
+
+let replace (sigma:state) (variable:loc) (a) : state =
+    Hashtbl.replace sigma variable a ;sigma
+
+let remove (sigma:state) (variable:loc) : state =
+    Hashtbl.remove sigma variable ;sigma
+
+let lookup (sigma:state) (variable:loc) : n =
   try
-    Hashtbl.find sigma variable 
-  with Not_found -> 0 
+    Hashtbl.find sigma variable
+  with Not_found -> 0
 
-(* Evaluates an aexp given the state 'sigma'. *) 
 let rec eval_aexp (a:aexp) (sigma:state) : n = match a with
   | Const(n) -> n
-  | Var(loc) -> lookup sigma loc 
-  | Add(a0,a1) -> 
-    let n0 = eval_aexp a0 sigma in
-    let n1 = eval_aexp a1 sigma in
-    n0 + n1
-  | Sub(a0,a1) -> 
-    let n0 = eval_aexp a0 sigma in
-    let n1 = eval_aexp a1 sigma in
-    n0 - n1
-  | Mul(a0,a1) -> 
-    let n0 = eval_aexp a0 sigma in
-    let n1 = eval_aexp a1 sigma in
-    n0 * n1
+  | Var(loc) -> lookup sigma loc
+  | Add(a0,a1) -> eval_aexp a0 sigma + eval_aexp a1 sigma
+  | Sub(a0,a1) -> eval_aexp a0 sigma - eval_aexp a1 sigma
+  | Mul(a0,a1) -> eval_aexp a0 sigma * eval_aexp a1 sigma
 
-(* Evaluates a bexp given the state 'sigma'. *) 
+(* Evaluates a bexp given the state 'sigma'. *)
 let rec eval_bexp (b:bexp) (sigma:state) : t = match b with
-  | True -> true
-  | False -> false 
-  | _ -> 
-    (* you must put real code here *) 
-    Printf.printf "Warning! BExp not yet implemented!\n" ; true 
+  | True              -> true
+  | False             -> false
+  | EQ(aexp1, aexp2)  -> eval_aexp aexp1 sigma= eval_aexp aexp2 sigma
+  | LE(aexp1, aexp2) -> eval_aexp aexp1 sigma <= eval_aexp aexp2 sigma
+  | Not bexp          -> not (eval_bexp bexp sigma)
+  | And(bexp1, bexp2) -> eval_bexp bexp1 sigma && eval_bexp bexp2 sigma
+  | Or(bexp1, bexp2)  -> eval_bexp bexp1 sigma || eval_bexp bexp2 sigma
 
 (* Evaluates a com given the state 'sigma'. *) 
 let rec eval_com (c:com) (sigma:state) : termination = match c with
   | Skip -> (Normal(sigma))
-  | _ -> 
-    (* you must put real code here *)
-    Printf.printf "Warning! Com not yet implemented!\n" ; 
-    (Normal(sigma))
+  | Set(id, aexp) ->
+        let value = eval_aexp aexp sigma in
+        replace sigma id value;
+	Normal(sigma);
+  | Seq(com1, com2)  ->
+	begin 
+	let termination1 = eval_com (com1 sigma) in 
+	let final_termination = (match termination1 with
+	|Normal(sigma) ->
+		eval_com com2 sigma;
+	|Exceptional(state, value) ->
+		Exceptional(state, value);
+	|_ -> Normal(sigma);)
+	end
+  | If(bexp, com1, com2) ->
+      if eval_bexp bexp sigma then eval_com com1 sigma else eval_com com2 sigma
+  | While(bexp, com) ->
+      (*This is going to change as well*)
+      let rec loop sigma' bexp' com' =
+        if eval_bexp bexp' sigma' then loop (eval_com com' sigma') bexp' com'
+        else (Normal(sigma')) in
+      loop sigma bexp com
+  | Print (a:aexp) ->
+        let value = eval_aexp a sigma in
+        Printf.printf "%d" value;
+  | Throw (aexp) ->
+	let exception_value = eval_aexp aexp in
+	(Exceptional(sigma, exception_value));
+  | TryCatch (com1, loc, com2) ->
+	(match (eval_com com1) with
+		|Normal (sigma) ->
+			Normal(sigma);
+		|Exceptional(sigma, exception_value) ->
+        		Normal(replace sigma loc exception_value))
+  | AfterFinally(com1, com2) ->
+	let termination1 = eval_com com1 in
+	let termination2 = eval_com com2 in
+	(match termination2 with
+	|Exceptional(state_2, exception_value_2) ->
+		Exceptional(state_2, exception_value_2);
+	|Normal (state_2) ->
+		(match termination1 with
+		|Exceptional(state_1, exception_value_1) ->
+			Exceptional(state_1, exception_value_1);
+		|Normal(state_1) ->
+			Normal(state_2)))
+
+				
+		
+	
