@@ -27,9 +27,6 @@ type termination =
 
 let initial_state () : state = Hashtbl.create 255
 
-let find_all (sigma:state) (variable:loc) =
-    Hashtbl.find_all sigma variable
-
 let replace (sigma:state) (variable:loc) (a) : state =
     Hashtbl.replace sigma variable a ;sigma
 
@@ -66,48 +63,63 @@ let rec eval_com (c:com) (sigma:state) : termination = match c with
         replace sigma id value;
 	Normal(sigma);
   | Seq(com1, com2)  ->
-	begin 
-	let termination1 = eval_com (com1 sigma) in 
-	let final_termination = (match termination1 with
-	|Normal(sigma) ->
-		eval_com com2 sigma;
-	|Exceptional(state, value) ->
-		Exceptional(state, value);
-	|_ -> Normal(sigma);)
+  	let com1_term = eval_com com1 sigma in
+	begin match com1_term with
+	|Normal(sigma') ->
+		eval_com com2 sigma'
+	|Exceptional(sigma ,n)	->
+		Exceptional(sigma, n)
+	end
+  | Print (a:aexp) ->
+        let value = eval_aexp a sigma in begin
+        	Printf.printf "%d" value;
+		Normal(sigma);
+	end
+  | While(bexp, com) ->
+	let rec loop sigma' bexp' com' =
+        if eval_bexp bexp' sigma' then begin
+  		let com_term = eval_com com' sigma' in
+		begin match com_term with
+		|Normal(sigma'') ->
+			loop sigma'' bexp' com';
+		|Exceptional(sigma'' ,n)	->
+			Exceptional(sigma'', n);
+		end
+        end
+	else Normal(sigma') in
+      	loop sigma bexp com
+  |AfterFinally(com1, com2) ->
+  	let com1_term = eval_com com1 sigma in
+	begin match com1_term with
+		|Normal(sigma') ->
+			eval_com com2 sigma'
+		|Exceptional(sigma', n1)->
+			let com2_term = eval_com com2 sigma' in
+			begin match com2_term with
+			|Normal(sigma'') ->
+				Exceptional(sigma'', n1)
+			|Exceptional(sigma'' ,n2) ->
+				Exceptional(sigma'', n2);
+			end
 	end
   | If(bexp, com1, com2) ->
-      if eval_bexp bexp sigma then eval_com com1 sigma else eval_com com2 sigma
-  | While(bexp, com) ->
-      (*This is going to change as well*)
-      let rec loop sigma' bexp' com' =
-        if eval_bexp bexp' sigma' then loop (eval_com com' sigma') bexp' com'
-        else (Normal(sigma')) in
-      loop sigma bexp com
-  | Print (a:aexp) ->
-        let value = eval_aexp a sigma in
-        Printf.printf "%d" value;
+  	eval_com (if eval_bexp bexp sigma then com1 else com2) sigma
   | Throw (aexp) ->
-	let exception_value = eval_aexp aexp in
-	(Exceptional(sigma, exception_value));
+        let value = eval_aexp aexp sigma in begin
+	Exceptional(sigma, value);
+	end
   | TryCatch (com1, loc, com2) ->
-	(match (eval_com com1) with
-		|Normal (sigma) ->
-			Normal(sigma);
-		|Exceptional(sigma, exception_value) ->
-        		Normal(replace sigma loc exception_value))
-  | AfterFinally(com1, com2) ->
-	let termination1 = eval_com com1 in
-	let termination2 = eval_com com2 in
-	(match termination2 with
-	|Exceptional(state_2, exception_value_2) ->
-		Exceptional(state_2, exception_value_2);
-	|Normal (state_2) ->
-		(match termination1 with
-		|Exceptional(state_1, exception_value_1) ->
-			Exceptional(state_1, exception_value_1);
-		|Normal(state_1) ->
-			Normal(state_2)))
-
-				
-		
+  	let com1_term = eval_com com1 sigma in
+	begin match com1_term with
+		|Normal(sigma') ->
+			com1_term;
+		|Exceptional(sigma1, n2) ->
+        		replace sigma loc n2;
+  			eval_com com2 sigma;
+	end
+  |_ ->
+	begin
+		Printf.printf "not implemented yet";
+		Normal(sigma);		
+	end
 	
