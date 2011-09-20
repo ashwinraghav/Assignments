@@ -46,9 +46,10 @@ hw2.cmx : hw2.cmi
 parse.cmx : parse.cmi parse.ml
 main.cmx : hw2.cmi hw2.ml parse.cmi
 
-.PHONY: test1 test2 test3 test4 test5 test6 test7 test8 test9
+.PHONY: test1 test2 test3 test4 test5 test6 test7 test8 test9 test10
 
-test: all test1 test2 test3 test4 test5 test6 test7 test8 test9
+
+test: all test1 test2 test3 test4 test5 test6 test7 test8 test9 test10
 
 TEST1 = "'print 1 + 2'" 
 test1:
@@ -103,6 +104,11 @@ test9:
 	@echo "33183-12 *** Uncaught Exception -24" > test-answer
 	@echo "$(TEST9)" | ./imp --silent > test-result
 	@if diff -b -w test-result test-answer ; then echo "*** test9 passed" ; else echo "*** test9 FAILED: $(TEST8)" ; fi 
+TEST10 = "' x := 0;while true do { try if x <= 5 then after throw x finally print x+1; throw x+2 else print x; throw x+1 catch x print x-10; if x <=10  then print x else throw x*5 } '" 
+test10:
+	@echo "1-823-645-466-377-288-199010101 *** Uncaught Exception 55" > test-answer
+	@echo "$(TEST10)" | ./imp --silent > test-result
+	@if diff -b -w test-result test-answer ; then echo "*** test10 passed" ; else echo "*** test10 FAILED: $(TEST10)" ; fi 
 
 # Your project will be graded using: 
 #
