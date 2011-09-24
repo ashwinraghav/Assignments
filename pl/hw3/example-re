@@ -1,0 +1,3 @@
+/* YOUR NAME HERE -- put your name in a comment so that if this file
+   gets mixed up I can still give you credit for it */ 
+"cs655 is cool" (['a'-'z']|['0'-'9'])+ 
