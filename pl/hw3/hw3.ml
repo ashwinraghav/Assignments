@@ -38,21 +38,25 @@ let rec matches (re : re) (s : re_string) : stringset = match re with
     | _ -> emptyset
   end
   | Concat(re1, re2) -> begin
+    Printf.printf "re1 %s" (re_to_str re1);
+    Printf.printf "re2 %s" (re_to_str re2);
+    Printf.printf "string %s" (re_string_to_str s);
     let set1 = matches re1 s in
     if is_empty set1 then
-	begin
 	emptyset
-	end
     else
 	begin
-		let final_string = Re.fold (fun elt a -> a^Re.re_string_to_str elt) set1 "" in
-		matches re2 (string_to_re_string final_string)
+    	Printf.printf "re1 is not empty";
+	let final_string = Re.fold (fun elt a -> a^Re.re_string_to_str elt) set1 "" in
+	matches re2 (string_to_re_string final_string)
 	end
   end
   | Or (re1,re2) -> begin
     union (matches re1 s) (matches re2 s);
   end
-  (*| Star(re)
+  | Star(re) ->
+		union (singleton s)(matches (Concat(re,Star(re))) s);
+(*
   | Plus(re)
 *)
   | _ -> Printf.printf "Error: RE %s unimplemented!\n"
