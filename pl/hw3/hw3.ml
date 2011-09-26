@@ -46,8 +46,7 @@ let rec matches (re : re) (s : re_string) : stringset = match re with
     else
 	begin
     	(*Printf.printf "re1 is not empty";*)
-	let final_string = Re.fold (fun elt a -> a^Re.re_string_to_str elt) set1 "" in
-	matches re2 (string_to_re_string final_string)
+	Re.fold (fun elt a -> union a (matches re2 elt)) set1 emptyset
 	end
   end
   | Or (re1,re2) ->
