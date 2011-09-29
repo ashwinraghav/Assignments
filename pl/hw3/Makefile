@@ -46,7 +46,9 @@ hw3.cmx : hw3.cmi
 parse.cmx : parse.cmi parse.ml
 main.cmx : hw3.cmi hw3.ml parse.cmi
 
-test: all test1.test test2.test test3.test test4.test test5.test test6.test test7.test test8.test test9.test 
+test: all \
+        test1.test test2.test test3.test test4.test test5.test test6.test \
+        test7.test test8.test test9.test 
 
 %.test: %.re
 	@./re --silent < $< > $<.result
