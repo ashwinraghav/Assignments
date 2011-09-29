@@ -22,7 +22,7 @@ let rec matches (re : re) (s : re_string) : stringset = match re with
 
   | CharRange(from_char, to_char) -> begin
     match s with	
-    (*char range c1..c2 was painful. Could not get it to work. Hence the ugly loop*)
+    (*char range c1..c2 was painful. Could not get it to work. Hence the ugly recursion/loop*)
     | c1 :: rest ->
       let rec loop from_c to_c = let ascii1 = Char.code from_c in let ascii2= Char.code to_c in
       if (ascii1 > ascii2) then
@@ -37,17 +37,11 @@ let rec matches (re : re) (s : re_string) : stringset = match re with
     | _ -> emptyset
   end
   | Concat(re1, re2) -> begin
-    (*Printf.printf "re1 %s" (re_to_str re1);
-    Printf.printf "re2 %s" (re_to_str re2);
-    Printf.printf "string %s" (re_string_to_str s); *)
     let set1 = matches re1 s in
     if is_empty set1 then
 	emptyset
     else
-	begin
-    	(*Printf.printf "re1 is not empty";*)
 	Re.fold (fun elt a -> union a (matches re2 elt)) set1 emptyset
-	end
   end
   | Or (re1,re2) ->
     union (matches re1 s) (matches re2 s);
