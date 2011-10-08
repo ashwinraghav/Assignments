@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
-
+#include <pthread.h>
 
 // Define the immutable boundary conditions and the inital cell value
 #define TOP_BOUNDARY_VALUE 0.0
@@ -18,6 +18,7 @@
 #define RIGHT_BOUNDARY_VALUE 100.0
 #define INITIAL_CELL_VALUE 50.0
 
+#define THREAD_COUNT 2
 
 // Function prototypes
 void print_cells(float **cells, int n_x, int n_y);
@@ -26,45 +27,24 @@ void create_snapshot(float **cells, int n_x, int n_y, int id);
 float **allocate_cells(int n_x, int n_y);
 void die(const char *error);
 
+typedef struct {
+	int id;
+} parm;
 
-int main(int argc, char **argv) {
-	// Record the start time of the program
-	time_t start_time = time(NULL);
-	
-	// Extract the input parameters from the command line arguments
-	// Number of columns in the grid (default = 1,000)
-	int num_cols = (argc > 1) ? atoi(argv[1]) : 1000;
-	// Number of rows in the grid (default = 1,000)
-	int num_rows = (argc > 2) ? atoi(argv[2]) : 1000;
-	// Number of iterations to simulate (default = 100)
-	int iterations = (argc > 3) ? atoi(argv[3]) : 100;
-	
-	// Output the simulation parameters
-	printf("Grid: %dx%d, Iterations: %d\n", num_cols, num_rows, iterations);
-		
-	// We allocate two arrays: one for the current time step and one for the next time step.
-	// At the end of each iteration, we switch the arrays in order to avoid copying.
-	// The arrays are allocated with an extra surrounding layer which contains
-	//  the immutable boundary conditions (this simplifies the logic in the inner loop).
+void *iterate_plate_rows (void *arg){
 	float **cells[2];
-	cells[0] = allocate_cells(num_cols + 2, num_rows + 2);
-	cells[1] = allocate_cells(num_cols + 2, num_rows + 2);
+	cells[0]=((float ***) arg)[0];
+	cells[1]=((float ***) arg)[1];
 	int cur_cells_index = 0, next_cells_index = 1;
-	
-	// Initialize the interior (non-boundary) cells to their initial value.
-	// Note that we only need to initialize the array for the current time
-	//  step, since we will write to the array for the next time step
-	//  during the first iteration.
-	initialize_cells(cells[0], num_cols, num_rows);
-	
-	// Set the immutable boundary conditions in both copies of the array
 	int x, y, i;
+	int num_cols = 1000;
+	// Number of rows in the grid (default = 1,000)
+	int num_rows = 1000;
+	int iterations = 100;
 	for (x = 1; x <= num_cols; x++) cells[0][0][x] = cells[1][0][x] = TOP_BOUNDARY_VALUE;
 	for (x = 1; x <= num_cols; x++) cells[0][num_rows + 1][x] = cells[1][num_rows + 1][x] = BOTTOM_BOUNDARY_VALUE;
 	for (y = 1; y <= num_rows; y++) cells[0][y][0] = cells[1][y][0] = LEFT_BOUNDARY_VALUE;
 	for (y = 1; y <= num_rows; y++) cells[0][y][num_cols + 1] = cells[1][y][num_cols + 1] = RIGHT_BOUNDARY_VALUE;
-	
-	// Simulate the heat flow for the specified number of iterations
 	for (i = 0; i < iterations; i++) {
 		// Traverse the plate, computing the new value of each cell
 		for (y = 1; y <= num_rows; y++) {
@@ -84,6 +64,46 @@ int main(int argc, char **argv) {
 		// Print the current progress
 		printf("Iteration: %d / %d\n", i + 1, iterations);
 	}
+	//parm *p=(parm *)arg;
+//	printf("Hello from node %d\n", p->id);
+	return (NULL);
+}
+
+int main(int argc, char **argv) {
+	// Record the start time of the program
+	time_t start_time = time(NULL);
+	pthread_t *threads;
+	threads=(pthread_t *)malloc(THREAD_COUNT*sizeof(*threads));
+	
+	// Extract the input parameters from the command line arguments
+	// Number of columns in the grid (default = 1,000)
+	int num_cols = (argc > 1) ? atoi(argv[1]) : 1000;
+	// Number of rows in the grid (default = 1,000)
+	int num_rows = (argc > 2) ? atoi(argv[2]) : 1000;
+	// Number of iterations to simulate (default = 100)
+	int iterations = (argc > 3) ? atoi(argv[3]) : 100;
+	
+	// Output the simulation parameters
+	printf("Grid: %dx%d, Iterations: %d\n", num_cols, num_rows, iterations);
+		
+	// We allocate two arrays: one for the current time step and one for the next time step.
+	// At the end of each iteration, we switch the arrays in order to avoid copying.
+	// The arrays are allocated with an extra surrounding layer which contains
+	//  the immutable boundary conditions (this simplifies the logic in the inner loop).
+	float **cells[2];
+	cells[0] = allocate_cells(num_cols + 2, num_rows + 2);
+	cells[1] = allocate_cells(num_cols + 2, num_rows + 2);
+	
+	// Initialize the interior (non-boundary) cells to their initial value.
+	// Note that we only need to initialize the array for the current time
+	//  step, since we will write to the array for the next time step
+	//  during the first iteration.
+	initialize_cells(cells[0], num_cols, num_rows);
+	
+	// Set the immutable boundary conditions in both copies of the array
+	
+	pthread_create(&threads[1], NULL, iterate_plate_rows, (void *) cells);
+	pthread_join(threads[1], (void *)NULL);
 	
 	// Output a snapshot of the final state of the plate
 	int final_cells = (iterations % 2 == 0) ? 0 : 1;
@@ -124,7 +144,6 @@ void initialize_cells(float **cells, int num_cols, int num_rows) {
 		}
 	}
 }
-
 
 // Creates a snapshot of the current state of the cells in PPM format.
 // The plate is scaled down so the image is at most 1,000 x 1,000 pixels.
