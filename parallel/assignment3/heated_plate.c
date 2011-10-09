@@ -18,7 +18,7 @@
 #define RIGHT_BOUNDARY_VALUE 100.0
 #define INITIAL_CELL_VALUE 50.0
 
-#define THREAD_COUNT 2
+#define THREAD_COUNT 16
 
 // Function prototypes
 void print_cells(float **cells, int n_x, int n_y);
@@ -28,44 +28,34 @@ float **allocate_cells(int n_x, int n_y);
 void die(const char *error);
 
 typedef struct {
-	int id;
-} parm;
+	float ***cells;
+	int num_rows, num_cols, cur_cells_index, next_cells_index, start_row, end_row;
+} param;
 
 void *iterate_plate_rows (void *arg){
+	param *p=(param *)arg;
 	float **cells[2];
-	cells[0]=((float ***) arg)[0];
-	cells[1]=((float ***) arg)[1];
-	int cur_cells_index = 0, next_cells_index = 1;
+	cells[0] = p->cells[0];
+	cells[1] = p->cells[1];
+	int num_cols = p->num_cols;
+	int cur_cells_index = p->cur_cells_index;
+	int next_cells_index = p->next_cells_index;;
+	int start_row = p->start_row;
+	int start_col = 1;
+	int end_row = p->end_row;
+	int end_col = num_cols;
 	int x, y, i;
-	int num_cols = 1000;
 	// Number of rows in the grid (default = 1,000)
-	int num_rows = 1000;
-	int iterations = 100;
-	for (x = 1; x <= num_cols; x++) cells[0][0][x] = cells[1][0][x] = TOP_BOUNDARY_VALUE;
-	for (x = 1; x <= num_cols; x++) cells[0][num_rows + 1][x] = cells[1][num_rows + 1][x] = BOTTOM_BOUNDARY_VALUE;
-	for (y = 1; y <= num_rows; y++) cells[0][y][0] = cells[1][y][0] = LEFT_BOUNDARY_VALUE;
-	for (y = 1; y <= num_rows; y++) cells[0][y][num_cols + 1] = cells[1][y][num_cols + 1] = RIGHT_BOUNDARY_VALUE;
-	for (i = 0; i < iterations; i++) {
-		// Traverse the plate, computing the new value of each cell
-		for (y = 1; y <= num_rows; y++) {
-			for (x = 1; x <= num_cols; x++) {
-				// The new value of this cell is the average of the old values of this cell's four neighbors
-				cells[next_cells_index][y][x] = (cells[cur_cells_index][y][x - 1]  +
-				                                 cells[cur_cells_index][y][x + 1]  +
-				                                 cells[cur_cells_index][y - 1][x]  +
-				                                 cells[cur_cells_index][y + 1][x]) * 0.25;
-			}
+	for (y = start_row; y <= end_row; y++) {
+		for (x = start_col; x <= end_col; x++) {
+			// The new value of this cell is the average of the old values of this cell's four neighbors
+			cells[next_cells_index][y][x] = (cells[cur_cells_index][y][x - 1]  +
+			                                 cells[cur_cells_index][y][x + 1]  +
+			                                 cells[cur_cells_index][y - 1][x]  +
+			                                 cells[cur_cells_index][y + 1][x]) * 0.25;
 		}
 		
-		// Swap the two arrays
-		cur_cells_index = next_cells_index;
-		next_cells_index = !cur_cells_index;
-		
-		// Print the current progress
-		printf("Iteration: %d / %d\n", i + 1, iterations);
 	}
-	//parm *p=(parm *)arg;
-//	printf("Hello from node %d\n", p->id);
 	return (NULL);
 }
 
@@ -74,7 +64,7 @@ int main(int argc, char **argv) {
 	time_t start_time = time(NULL);
 	pthread_t *threads;
 	threads=(pthread_t *)malloc(THREAD_COUNT*sizeof(*threads));
-	
+	int i;	
 	// Extract the input parameters from the command line arguments
 	// Number of columns in the grid (default = 1,000)
 	int num_cols = (argc > 1) ? atoi(argv[1]) : 1000;
@@ -82,6 +72,7 @@ int main(int argc, char **argv) {
 	int num_rows = (argc > 2) ? atoi(argv[2]) : 1000;
 	// Number of iterations to simulate (default = 100)
 	int iterations = (argc > 3) ? atoi(argv[3]) : 100;
+	int x, y,cur_cells_index=0, next_cells_index=1, j;
 	
 	// Output the simulation parameters
 	printf("Grid: %dx%d, Iterations: %d\n", num_cols, num_rows, iterations);
@@ -94,16 +85,32 @@ int main(int argc, char **argv) {
 	cells[0] = allocate_cells(num_cols + 2, num_rows + 2);
 	cells[1] = allocate_cells(num_cols + 2, num_rows + 2);
 	
-	// Initialize the interior (non-boundary) cells to their initial value.
-	// Note that we only need to initialize the array for the current time
-	//  step, since we will write to the array for the next time step
-	//  during the first iteration.
+	for (x = 1; x <= num_cols; x++) cells[0][0][x] = cells[1][0][x] = TOP_BOUNDARY_VALUE;
+	for (x = 1; x <= num_cols; x++) cells[0][num_rows + 1][x] = cells[1][num_rows + 1][x] = BOTTOM_BOUNDARY_VALUE;
+	for (y = 1; y <= num_rows; y++) cells[0][y][0] = cells[1][y][0] = LEFT_BOUNDARY_VALUE;
+	for (y = 1; y <= num_rows; y++) cells[0][y][num_cols + 1] = cells[1][y][num_cols + 1] = RIGHT_BOUNDARY_VALUE;
+	
 	initialize_cells(cells[0], num_cols, num_rows);
-	
-	// Set the immutable boundary conditions in both copies of the array
-	
-	pthread_create(&threads[1], NULL, iterate_plate_rows, (void *) cells);
-	pthread_join(threads[1], (void *)NULL);
+		
+	for (i = 0; i < iterations; i++) {
+		for (j=0; j < THREAD_COUNT; j++){
+			param p;
+			p.cells = cells;
+			p.num_rows = num_rows;
+			p.num_cols = num_cols;
+			p.cur_cells_index = cur_cells_index;
+			p.next_cells_index = next_cells_index;
+			p.start_row = ((j - 1) * (int) (num_rows/THREAD_COUNT)) + 1;
+			p.end_row = (j * (int) (num_rows/THREAD_COUNT));
+		//	printf("%d---%d\n", p.start_row, p.end_row);
+			pthread_create(&threads[j], NULL, iterate_plate_rows, (void *) &p);
+		}
+		for (j=0; j < THREAD_COUNT; j++){
+			pthread_join(threads[j], NULL);
+		}
+		cur_cells_index = next_cells_index;
+		next_cells_index = !cur_cells_index;
+	}
 	
 	// Output a snapshot of the final state of the plate
 	int final_cells = (iterations % 2 == 0) ? 0 : 1;
