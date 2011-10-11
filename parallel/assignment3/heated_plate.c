@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <pthread.h>
+#include <numa.h>
 
 // Define the immutable boundary conditions and the inital cell value
 #define TOP_BOUNDARY_VALUE 0.0
@@ -60,7 +61,9 @@ void *iterate_plate_rows (void *arg){
 }
 
 int main(int argc, char **argv) {
-	// Record the start time of the program
+	if (numa_available() < 0) {
+printf("Your system does not support NUMA API\n");
+}// Record the start time of the program
 	time_t start_time = time(NULL);
 	pthread_t *threads;
 	threads=(pthread_t *)malloc(THREAD_COUNT*sizeof(*threads));
