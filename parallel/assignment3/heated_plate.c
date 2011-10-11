@@ -18,7 +18,7 @@
 #define RIGHT_BOUNDARY_VALUE 100.0
 #define INITIAL_CELL_VALUE 50.0
 
-#define THREAD_COUNT 10
+#define THREAD_COUNT 16
 
 // Function prototypes
 void print_cells(float **cells, int n_x, int n_y);
@@ -28,7 +28,7 @@ float **allocate_cells(int n_x, int n_y);
 void die(const char *error);
 
 typedef struct {
-	int start_row, end_row, cur_cells_index, next_cells_index;
+	int num_rows, num_cols, start_row, end_row, cur_cells_index, next_cells_index;
 	float **cells[2];
 } param;
 
@@ -41,11 +41,8 @@ void *iterate_plate_rows (void *arg){
 	int cur_cells_index = p->cur_cells_index;
 	int next_cells_index = p->next_cells_index;
 	int x, y, i;
-	int num_cols = 1000;
-	// Number of rows in the grid (default = 1,000)
-	int num_rows = 1000;
-	int iterations = 100;
-		// Traverse the plate, computing the new value of each cell
+	int num_cols = p->num_rows;
+	int num_rows = p->num_cols;
 	for (y = p->start_row; y <= p->end_row; y++) {
 		for (x = 1; x <= num_cols; x++) {
 			// The new value of this cell is the average of the old values of this cell's four neighbors
@@ -101,6 +98,8 @@ int main(int argc, char **argv) {
 		p[i].cells[1] = cells[1];
 		p[i].start_row = i * (num_rows/THREAD_COUNT) + 1;
 		p[i].end_row = (i + 1) * (num_rows/THREAD_COUNT);
+		p[i].num_rows = num_rows;
+		p[i].num_cols = num_cols;
 	}
 	
 	for (j = 0; j < iterations; j++) {
@@ -110,16 +109,16 @@ int main(int argc, char **argv) {
 			p[i].cur_cells_index = cur_cells_index;
 			p[i].next_cells_index = next_cells_index;
 			pthread_create(&threads[i], NULL, iterate_plate_rows, (void *) &p[i]);
+			printf("Creating thread %d\n", i);
 		}
 		for (i=0; i < THREAD_COUNT; i++){
 			pthread_join(threads[i], (void *)NULL);
+			printf("Waiting for the thread %d\n", i);
 		}
 		// Swap the two arrays
 		printf("Swapping in iteration %d\n", j+1);
 		cur_cells_index = next_cells_index;
 		next_cells_index = !cur_cells_index;
-		
-		// Print the current progress
 	}
 	
 	// Output a snapshot of the final state of the plate
