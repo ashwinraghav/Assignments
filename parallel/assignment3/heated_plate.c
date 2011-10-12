@@ -10,7 +10,6 @@
 #include <stdio.h>
 #include <time.h>
 #include <pthread.h>
-#include <numa.h>
 
 // Define the immutable boundary conditions and the inital cell value
 #define TOP_BOUNDARY_VALUE 0.0
@@ -19,23 +18,18 @@
 #define RIGHT_BOUNDARY_VALUE 100.0
 #define INITIAL_CELL_VALUE 50.0
 
-#define THREAD_COUNT 10
+#define THREAD_COUNT 16
 
 // Function prototypes
 void print_cells(float **cells, int n_x, int n_y);
 void initialize_cells(float **cells, int n_x, int n_y);
 void create_snapshot(float **cells, int n_x, int n_y, int id);
 float **allocate_cells(int n_x, int n_y);
-pthread_mutex_t count_mutex;
-pthread_cond_t thread_iteration[THREAD_COUNT];
-int iterations[THREAD_COUNT];
 void die(const char *error);
 
 typedef struct {
-	int num_rows, num_cols, start_row, end_row, cur_cells_index, next_cells_index, id, tot_iterations;
+	int num_rows, num_cols, start_row, end_row, cur_cells_index, next_cells_index;
 	float **cells[2];
-	pthread_cond_t *wait_for_prev;
-	pthread_cond_t *wait_for_next;
 } param;
 
 void *iterate_plate_rows (void *arg){
@@ -44,77 +38,44 @@ void *iterate_plate_rows (void *arg){
 	cells[0] = p -> cells[0];
 	cells[1] = p -> cells[1];
 
+	int cur_cells_index = p->cur_cells_index;
+	int next_cells_index = p->next_cells_index;
 	int x, y, i;
 	int num_cols = p->num_rows;
 	int num_rows = p->num_cols;
-	int my_id = p->id;
-	int tot_iterations = p->tot_iterations;
-	int current_iteration;
-	int cur_cells_index = 0, next_cells_index = 1;
-	for(current_iteration = 1; current_iteration <= tot_iterations; current_iteration++){
-		for (y = p->start_row + 1; y <= p->end_row -1 ; y++) {
-			for (x = 1; x <= num_cols; x++) {
-				// The new value of this cell is the average of the old values of this cell's four neighbors
-				cells[next_cells_index][y][x] = (cells[cur_cells_index][y][x - 1]  +
-						cells[cur_cells_index][y][x + 1]  +
-						cells[cur_cells_index][y - 1][x]  +
-						cells[cur_cells_index][y + 1][x]) * 0.25;
-			}
-		}
-		if(p->start_row != 1){
-			while(iteration_of_thread(my_id - 1) < current_iteration-1){
-				//pthread_cond_wait(p->wait_for_prev, NULL);
-			}
-		}
-		y=p->start_row;
+	for (y = p->start_row; y <= p->end_row; y++) {
 		for (x = 1; x <= num_cols; x++) {
 			// The new value of this cell is the average of the old values of this cell's four neighbors
 			cells[next_cells_index][y][x] = (cells[cur_cells_index][y][x - 1]  +
-					cells[cur_cells_index][y][x + 1]  +
-					cells[cur_cells_index][y - 1][x]  +
-					cells[cur_cells_index][y + 1][x]) * 0.25;
+			                                 cells[cur_cells_index][y][x + 1]  +
+			                                 cells[cur_cells_index][y - 1][x]  +
+			                                 cells[cur_cells_index][y + 1][x]) * 0.25;
 		}
-		if(p->end_row != num_rows){
-			while(iteration_of_thread(my_id + 1) < current_iteration-1){
-				//pthread_cond_wait(p->wait_for_next, NULL);
-			}
-		}
-		y=p->end_row;
-		for (x = 1; x <= num_cols; x++) {
-			// The new value of this cell is the average of the old values of this cell's four neighbors
-			cells[next_cells_index][y][x] = (cells[cur_cells_index][y][x - 1]  +
-					cells[cur_cells_index][y][x + 1]  +
-					cells[cur_cells_index][y - 1][x]  +
-					cells[cur_cells_index][y + 1][x]) * 0.25;
-		}
-
-		cur_cells_index = next_cells_index;
-		next_cells_index = !cur_cells_index;
-		printf("%d", my_id);
-		iterations[my_id]=iterations[my_id] + 1;
-	 	pthread_cond_signal(&thread_iteration[my_id]);
 	}
+		
+	printf("row = %d, end = %d\n", p->start_row, p->end_row);
+	//parm *p=(parm *)arg;
+//	printf("Hello from node %d\n", p->id);
 	return (NULL);
 }
 
 int main(int argc, char **argv) {
-	if (numa_available() < 0) {
-printf("Your system does not support NUMA API\n");
-}// Record the start time of the program
+	// Record the start time of the program
 	time_t start_time = time(NULL);
 	pthread_t *threads;
 	threads=(pthread_t *)malloc(THREAD_COUNT*sizeof(*threads));
+	
 	// Extract the input parameters from the command line arguments
 	// Number of columns in the grid (default = 1,000)
 	int num_cols = (argc > 1) ? atoi(argv[1]) : 1000;
 	// Number of rows in the grid (default = 1,000)
 	int num_rows = (argc > 2) ? atoi(argv[2]) : 1000;
 	// Number of iterations to simulate (default = 100)
-	int tot_iterations = (argc > 3) ? atoi(argv[3]) : 100;
+	int iterations = (argc > 3) ? atoi(argv[3]) : 100;
 	int cur_cells_index = 0, next_cells_index = 1;
 	
 	// Output the simulation parameters
-	printf("Grid: %dx%d, Iterations: %d\n", num_cols, num_rows, tot_iterations);
+	printf("Grid: %dx%d, Iterations: %d\n", num_cols, num_rows, iterations);
 		
 	// We allocate two arrays: one for the current time step and one for the next time step.
 	// At the end of each iteration, we switch the arrays in order to avoid copying.
@@ -133,38 +94,36 @@ printf("Your system does not support NUMA API\n");
 	
 	param p[THREAD_COUNT];
 	for (i=0; i < THREAD_COUNT; i++){
-		pthread_cond_init (&thread_iteration[i], NULL);
 		p[i].cells[0] = cells[0];
 		p[i].cells[1] = cells[1];
-		p[i].id=i;
 		p[i].start_row = i * (num_rows/THREAD_COUNT) + 1;
 		p[i].end_row = (i + 1) * (num_rows/THREAD_COUNT);
 		p[i].num_rows = num_rows;
 		p[i].num_cols = num_cols;
-		p[i].tot_iterations = tot_iterations;
-		if (i!=0){
-			printf("incoming");
-			p[i].wait_for_prev = &thread_iteration[i-1];
-			p[i-1].wait_for_next = &thread_iteration[i];
-		}else{
-			p[i].wait_for_prev = NULL;
+	}
+	
+	for (j = 0; j < iterations; j++) {
+		printf("Iteration: %d / %d\n", j + 1, iterations);
+		for (i=0; i < THREAD_COUNT; i++){
+			printf("%d, %d\n", p[i].start_row, p[i].end_row);	
+			p[i].cur_cells_index = cur_cells_index;
+			p[i].next_cells_index = next_cells_index;
+			pthread_create(&threads[i], NULL, iterate_plate_rows, (void *) &p[i]);
+			printf("Creating thread %d\n", i);
 		}
-		p[i].wait_for_next=NULL;
-	}	
-	for(i=0; i< THREAD_COUNT; i++){
-		pthread_create(&threads[i], NULL, iterate_plate_rows, (void *) &p[i]);
-		printf("Creating thread %d\n", i);
+		for (i=0; i < THREAD_COUNT; i++){
+			pthread_join(threads[i], (void *)NULL);
+			printf("Waiting for the thread %d\n", i);
+		}
+		// Swap the two arrays
+		printf("Swapping in iteration %d\n", j+1);
+		cur_cells_index = next_cells_index;
+		next_cells_index = !cur_cells_index;
 	}
-	printf("here");
-		
-	for (i=0; i < THREAD_COUNT; i++){
-		pthread_join(threads[i], (void *)NULL);
-		printf("Waiting for the thread %d\n", i);
-	}
-
+	
 	// Output a snapshot of the final state of the plate
-	int final_cells = (tot_iterations % 2 == 0) ? 0 : 1;
-	create_snapshot(cells[final_cells], num_cols, num_rows, tot_iterations);
+	int final_cells = (iterations % 2 == 0) ? 0 : 1;
+	create_snapshot(cells[final_cells], num_cols, num_rows, iterations);
 
 	// Compute and output the execution time
 	time_t end_time = time(NULL);
@@ -173,9 +132,7 @@ printf("Your system does not support NUMA API\n");
 	return 0;
 }
 
-int iteration_of_thread(int t){
-	return iterations[t];
-}
+
 // Allocates and returns a pointer to a 2D array of floats
 float **allocate_cells(int num_cols, int num_rows) {
 	float **array = (float **) malloc(num_rows * sizeof(float *));
