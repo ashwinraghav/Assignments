@@ -19,7 +19,7 @@
 #define RIGHT_BOUNDARY_VALUE 100.0
 #define INITIAL_CELL_VALUE 50.0
 
-#define THREAD_COUNT 1
+#define THREAD_COUNT 10
 
 // Function prototypes
 void print_cells(float **cells, int n_x, int n_y);
@@ -62,8 +62,8 @@ void *iterate_plate_rows (void *arg){
 			}
 		}
 		if(p->start_row != 1){
-			while(iteration_of_thread(my_id - 1)!= current_iteration-1){
-				pthread_cond_wait(p->wait_for_prev, NULL);
+			while(iteration_of_thread(my_id - 1) < current_iteration-1){
+				//pthread_cond_wait(p->wait_for_prev, NULL);
 			}
 		}
 		y=p->start_row;
@@ -75,8 +75,8 @@ void *iterate_plate_rows (void *arg){
 					cells[cur_cells_index][y + 1][x]) * 0.25;
 		}
 		if(p->end_row != num_rows){
-			while(iteration_of_thread(my_id + 1)!= current_iteration-1){
-				pthread_cond_wait(p->wait_for_next, NULL);
+			while(iteration_of_thread(my_id + 1) < current_iteration-1){
+				//pthread_cond_wait(p->wait_for_next, NULL);
 			}
 		}
 		y=p->end_row;
