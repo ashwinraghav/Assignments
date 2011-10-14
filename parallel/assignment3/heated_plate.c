@@ -18,7 +18,7 @@
 #define RIGHT_BOUNDARY_VALUE 100.0
 #define INITIAL_CELL_VALUE 50.0
 
-#define THREAD_COUNT 16
+#define THREAD_COUNT 2
 
 // Function prototypes
 void print_cells(float **cells, int n_x, int n_y);
