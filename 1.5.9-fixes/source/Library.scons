@@ -1,0 +1,52 @@
+Import('env')
+
+# Delphi Library Path
+LIBRARIES = """
+    lib
+    lib/os/win
+    lib/rtl/dp60
+    lib/lc/sp
+    lib/hw/x86
+    tool
+    tool/lc/sp
+    tool/os/win
+    fwk/acon
+    fwk/avl
+    fwk/cfg
+    fwk/cipher
+    fwk/coords
+    fwk/data
+    fwk/email
+    fwk/eval
+    fwk/firebird
+    fwk/firebird/lc/sp
+    fwk/firebird/os/win
+    fwk/http
+    fwk/icmp
+    fwk/layer/1
+    fwk/lex
+    fwk/log
+    fwk/mime
+    fwk/notify
+    fwk/ntlm
+    fwk/pool
+    fwk/script
+    fwk/shared
+    fwk/shared/os/win
+    fwk/tok
+    fwk/url
+    fwk/vcl
+    fwk/vcl/os/win
+    fwk/vector
+    fwk/xml
+"""
+
+# Delphi Include Path
+INCLUDES = """
+    lib
+"""
+
+env.AppendToPath(
+    DCC32_UNIT      = LIBRARIES,
+    DCC32_INCLUDE   = INCLUDES
+  )

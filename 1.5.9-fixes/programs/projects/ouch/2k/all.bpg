@@ -1,0 +1,29 @@
+#------------------------------------------------------------------------------
+VERSION = BWS.01
+#------------------------------------------------------------------------------
+!ifndef ROOT
+ROOT = $(MAKEDIR)\..
+!endif
+#------------------------------------------------------------------------------
+MAKE = $(ROOT)\bin\make.exe -$(MAKEFLAGS) -f$**
+DCC = $(ROOT)\bin\dcc32.exe $**
+BRCC = $(ROOT)\bin\brcc32.exe $**
+#------------------------------------------------------------------------------
+PROJECTS = ouchprot.dll ouchsrv2.exe ouchito.exe ouchengine.dll
+#------------------------------------------------------------------------------
+default: $(PROJECTS)
+#------------------------------------------------------------------------------
+
+ouchsrv2.exe: server\1\ouchsrv2.dpr
+  $(DCC)
+
+ouchprot.dll: protocol\1\ouchprot.dpr
+  $(DCC)
+
+ouchengine.dll: engine\1\ouchengine.dpr
+  $(DCC)
+
+ouchito.exe: client\0b\ouchito.dpr
+  $(DCC)
+
+

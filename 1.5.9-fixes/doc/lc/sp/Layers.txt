@@ -1,0 +1,109 @@
+
+  introduccion a SIL LAYERS (capas de comunicacion)
+
+
+  cada layer (ILayer) esta dentro de un eslabon (ILayerLink)
+  cada eslabon esta dentro de una cadena (ILayerChain)
+  una instancia de ILayer puede estar en mas de un ILayerLink a la vez
+  una instancia de ILayer solo tiene conocimiento del ILayerLink que lo contiene cuando se activa/desactiva
+
+  estructura basica
+
+    ILayerChain                                 cadena de comunicacion
+      ILayerLink                                eslabon
+        ILayerLinkControl                       activacion
+        ILayerOperation                         lectura/escritura (ILayer)
+
+
+
+  ejemplo con protocolo imate
+
+    ILayerChain
+      ILayerLink
+        sil.layer.dev.sock.client               socket cliente
+      ILayerLink
+        sil.layer.packer.imate                  layer que arma paquetes del tipo imate
+      ILayerLink
+        ILayerSlot                              multiplexador de la comunicacion
+          ILayerChain                           cadena para el 1er protocolo
+            sil.layer.protocol.imate            despachador de paquetes imate
+            sil.layer.prot.imate.blind          procesamiento de paquetes
+            IBlindProtocolHook                  receptor de eventos (opcional segun el protocolo)
+          ILayerChain                           cadena para el 2do protocolo
+            sil.layer.protocol.imate
+            sil.layer.prot.imate.fileserver
+            IServerSideFileProtocolHook
+
+
+  secuencia de activacion (desde abajo hacia arriba)
+
+    ILayerChain.Control.Activate
+      ILayerLink.Control.Activate
+
+    los layers de dispositivo y los de protocolo implementan la interface
+
+    ILayerTerminal
+      property Link: ILayerLink;                eslabon que lo contiene [al layer]
+
+    al activarse, estos layers se guardan un puntero al eslabon (ILayerLink) que los contiene.
+    de esta manera les es posible propagar la informacion cuando escriben o reciben.
+
+
+  secuencia de comunicacion
+
+    el pasaje de informacion entre layers se hace con la interface
+
+    ILayerOperation
+      procedure Write(const Command: ILayerCommand);
+      procedure Read(const Command: ILayerCommand);
+      procedure Receive(const Command: ILayerCommand);
+      property Control: ILayerControl;
+
+    el buffer de datos esta dentro de la interface
+
+    ILayerCommand
+      property Caller: ILayerLink;              iniciador de la comunicacion
+      property Link: ILayerLink;                eslabon que contiene al layer actual
+      property Context: IInterface;             informacion de contexto (opcional)
+      property Packet: IPacket;                 buffer de datos
+      property Target: Variant;                 destino (opcional, se usa para identificar layers)
+
+    escritura
+
+      se crea un paquete (IPacket)
+      el layer terminal (de arriba) pasa al layer siguiente con
+
+      Cmd.Write(Link, Packet);                  link es el eslabon actual; packet son los datos
+
+      los layers intermedios pasa al layer siguiente con
+
+      Cmd.Write(Command);                       la interface ILayerCommand llega por ILayerOperation.Write()
+
+      los layers pueden hacer cualquier procesamiento sobre los datos que transportan
+      el layer terminal de abajo se encarga de escribir directamente en el dispositivo
+
+    lectura
+
+      se crea un paquete (IPacket)
+      el layer terminal (de arriba) pasa al layer siguiente con
+
+      Cmd.Read(Link, Packet);                   link es el eslabon actual; packet son los datos
+
+      los layers intermedios pasa al layer siguiente con
+
+      Cmd.Read(Command);                        la interface ILayerCommand llega por ILayerOperation.Read()
+
+      los layers pueden hacer cualquier procesamiento sobre los datos que transportan
+      el layer terminal de abajo se encarga de leer directamente en el dispositivo
+
+      nota: el protocolo imate no usa el metodo ILayerOperation.Read()
+
+    recepcion
+
+      se crea un command (ILayerCommand)
+      todos los layers pasan al layer siguiente con
+
+      Cmd.Receive(Command);                     la interface ILayerCommand llega por ILayerOperation.Read()
+
+      los layers pueden hacer cualquier procesamiento sobre los datos que transportan
+

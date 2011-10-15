@@ -1,0 +1,913 @@
+@@SilBtStr.pas
+Summary:
+  Base/Tool/String
+Description:
+  Unit que contiene la definición e implementación de todas las funciones y utilitarios que
+  manejan <B>string</B>.
+See also:
+  Str
+---------------------------------------------------------------------------------------------------
+@@Str
+Description
+Clase que contiene las funciones y utilitarios que manejan <B>string</B>s.
+Estas estan definidas como <B>class function</B>s de modo que
+es posible invocarlas directamente a través de la referencia
+a la clase <B>Str</B>
+Summary
+Clase tool para manejo de <B>string</B>s
+See Also
+Int, WStr, Float, Vart, Bin, Hex, Varray
+Example
+
+<PRE>  <B>var</B>
+    X: Integer;
+
+  {...}
+
+    X := Sil.Str.ToInt('1899');
+
+  {...}
+</PRE>
+En donde <B>ToInt()</B> es una <B>class function</B> de la
+clase <B>Str</B>.
+
+@@Str.Token@String@String@Integer
+Summary:
+  Tokenizador de <B>string</B>s
+Description:
+  Mediante sucesivas llamadas permite separar el string recibido en <B>Buffer</B> en sus componentes,
+  usando como separador el string recibido en <B>Separator</B>. Cada sucesivo elemento parseado es
+  devuelto como resultado de la función, y el paramatro por referencia es modificado para indicar
+  en la posición en que quedó la búsqueda para ser continuada en la próxima llamada.
+
+Arguments:
+  Buffer    - Contiene la lista de componentes que se desea parsear, se interpreta como una lista de
+              items, separados por el string <B>Separator</B>.
+  Separator - Separador a usar en el parseo de los items que <B>Buffer</B> contiene.
+  Position  - Variable que se usa como 'memoria' para saber de que posición dentro de <B>Buffer</B>
+              hay que retomar la búsqueda en la próxima invocación.
+Return Value:
+  Devuelve el elemento parseado (token) que continúa en la lista <B>Buffer</B> segun la posición
+  indicada por <B>Posicion</B>
+See also:
+  Str.Enumerate,
+  Str.TokenToArray,
+  List.TokenList
+---------------------------------------------------------------------------------------------------
+@@Str.Enumerate@String@String@string@Integer
+Description
+Funciona de la misma forma que la <LINK Str.Token@String@String@Integer, Str.Token>
+con la diferencia de que el <B>Item</B> lo retorna por
+referencia, y como resultado devuelve <B>True</B> siempre de
+que siga habiendo elementos para enumerar, de modo de que
+esta forma de enumeración es mucho más cómoda para ser usada
+en un <B>while</B> que la anterior.
+Summary
+Forma alternativa de tokenización.
+Remarks
+Es importante notar que, a diferencia de <LINK Str.Token@String@String@Integer, Str.Token>,
+esta funcion retorna <B>True</B> aunque ya sepa que no quedan
+más elementos en la lista, eso implica que el valor de <B>Posicion</B>
+va a indicar que ya no quedan elementos, pero aun así se
+retirnará <B>True</B> para permitir que el loop <B>while</B>
+se ejecute para el último de estos elementos. Otro detalle de
+importancia es que si en el <B>Buffer</B> hay dos separadores
+consecutivos sin existir nada de texto en el medio, esta
+función retornara, en ese caso, un elemento vacío (es decir
+'').
+Parameters
+Buffer :      Contiene la lista de elementos que se desea parsear, se
+              interpreta como una lista de items, separados por el
+              string <B>Separator</B>.
+Item :        En este parámetro por referencia se devuelve el item
+              resultado del parseo.
+Position :    Variable que se usa como 'memoria' para saber de que
+              posición dentro de <B>Buffer</B> hay que retomar la
+              búsqueda en la próxima invocación.
+Separator :   Separador a usar en el parseo de los items que <B>Buffer</B>
+              contiene.
+
+Returns
+Se retorna <B>True</B> si se pudo obtener algun elemento más
+de la lista, aunque este ya sea el último. En el caso de que
+ya no hayan más elementos que devolver, se retornará <B>False</B>.
+Example
+
+<CODE>  <B>var</B>
+    Item: string;
+    X: Integer;
+
+    // separamos una lista de opciones usando como separador ';'
+
+    <B>while</B> Sil.Str.Enumerate(Buffer, ';', Item, X) <B>do</B>
+    <B>begin</B>
+      {...}
+      // hacer lo necesario con 'Item'
+      {...}
+    <B>end</B>;
+
+</CODE>
+
+@@Str.TokenToArray@String@String
+Summary:
+  Tokeniza todo un Buffer en una sola llamada
+Description:
+  Recorre la lista de tokens recibida en <B>Buffer</B> parseando su contenido y poniendo
+  el resultado en un <B>array</B> de <B>string</B> que se devuelve como resultado.
+Arguments:
+  Buffer    - Igual a el caso de <LINK Str.Token@String@String@Integer, Str.Token> o <LINK Str.Enumerate, Enumerate> este parámetro
+              recibe el string que se desea parsear. 
+  Separator - Separador usado para separar el <B>Buffer</B> en tokens.
+Return Value:
+  Retorna un array con los items parseados. 
+See also:
+  Str.Token@String@String@Integer, Str.Enumerate
+---------------------------------------------------------------------------------------------------
+@@Str.WordWrap@String@Integer@Integer
+Summary:
+  Parte un <B>string</B> largo, recibido en <B>Buffer</B>, en tramos de hasta <B>Size</B>
+  caracteres de longitud.
+Description:
+  Funciona con la misma idea del <LINK Str.Token@String@String@Integer, Str.Token> en que hay que invocarlo sucesivas veces
+  y en cada invocación retorna un tramo del <B>string</B> de como máximo <B>Size</B> caracteres.
+Arguments:
+  Buffer   - Recibe el <B>string</B> a procesar.
+  Size     - Es el tamaño que deben tener los tramos devueltos.
+  Position - Se usa como memoria para mantener entre llamada y llamada la posición dentro de
+             <B>Buffer</B> en la que se debe seguir procesando.   
+Return Value:
+  Retorna el tramo correspondiente truncado a <B>Size</B> caracteres.
+See also:
+  Str.Token@String@String@Integer, Str.Enumerate  
+---------------------------------------------------------------------------------------------------
+@@Str.Translate@String@String@String
+Summary:
+  Reemplaza todas las apariciones de <B>Substr</B> encontradas en <B>Buffer</B> por el texto
+  recibido en <B>Replace</B>
+Description:
+  Ejecuta una búsqueda y reemplazo de todas las apariciones en un string, recibido en <B>Buffer</B>,
+  de un texto, especificado en el parámetro <B>Substr</B>, por el texto que se recibe en el
+  parámetro <B>Replace</B>.
+Arguments:
+  Buffer  - Recibe el texto en el que se desea efectuar la búsqueda y el reemplazo.
+  Substr  - Recibe el texto a buscar.
+  Replace - Recibe el texto por el que se debe reemplazar las ocurrencias de <B>Substr</B>
+Return Value:
+  Retorna el con todas las ocurrencias de <B>Substr</B> reemplazadas por <B>Replace</B>.
+---------------------------------------------------------------------------------------------------
+@@Str.TranslateChar@String@Char@Char
+Summary:
+  Reemplaza las ocurrencias de un caracter individual dentro de un texto
+Description:
+  Es igual al caso más completo de Str.Translate pero en el que se buscan y
+  reemplazan caracteres individuales.
+Arguments:
+  Buffer     - Recibe el string en el que hay que efectuar la búsqueda y reemplazo.
+  Character  - Caracter buscado para ser reemplazado por el pasado en <B>Replace</B>
+  Replace    - Caracter por el cual se desean reemplazar todas las ocurrencias del anterior.
+Remarks:
+  A diferencia de Str.Translate en este caso la búsqueda y reemplazo se lleva
+  a cabo dentro del mismo <B>string</B> recibido por parámetro. Por eso esta función lo espera por
+  referencia. 
+See also:
+  Str.Translate  
+---------------------------------------------------------------------------------------------------
+@@Str.PadL@String@Integer@Char
+Summary:
+  Inserta caracteres de relleno para completar por la izquierda un <B>string</B> hasta cierto tamaño.
+Description:
+  Se insertaran al principio de <B>Buffer</B> tantos caracteres como haga falta hasta completar el
+  tamaño especificado por parámetro en <B>Len</B>.
+  En el parámetro <B>Character</B> se especifica cual hay que usar como relleno. Este es opcional,
+  y si se omitiera, se usaría el ASCII 32, es decir un espacio.
+Arguments:
+  Buffer    - Texto que debe ser completado con relleno hasta llegar al tamaño especificado.
+  Len       - Tamaño al que se necesita llegar completando el <B>Buffer</B>.
+  Character - Caracter de relleno. Este parámetro es opcional y si se omite se usará el caracter
+              ASCII #32, que es un espacio.
+Return Value:
+  Se retorna el texto completado hasta el tamaño especificado.
+See also:
+  Str.PadR@String@Integer@Char
+---------------------------------------------------------------------------------------------------
+@@Str.PadR@String@Integer@Char
+Summary:
+  Agrega caracteres de relleno para completar por la derecha un <B>string</B> hasta cierto tamaño.
+Description:
+  Funciona de la misma manera que Str.PadL, pero en lugar de agregar los caracteres a la izquierda,
+  esta función los agrega a la derecha, es decir, al final del string.
+  Igual a el caso anterior, en el parámetro <B>Character</B> se especifica cual hay que usar como relleno.
+  Este es opcional, y si se omitiera, se usaría el ASCII 32, es decir un espacio.
+Arguments:
+  Buffer    - Texto que debe ser completado con relleno hasta llegar al tamaño especificado.
+  Len       - Tamaño al que se necesita llegar completando el <B>Buffer</B>.
+  Character - Caracter de relleno. Este parámetro es opcional y si se omite se usará el caracter
+              ASCII #32, que es un espacio.
+Return Value:
+  Se retorna el texto completado hasta el tamaño especificado.
+See also:
+  Str.PadL@String@Integer@Char
+---------------------------------------------------------------------------------------------------
+@@Str.WildCard@String@String
+Summary:
+  Determina si un texto dado cumple con un patrón especificado mediante 'Wildcards'
+Description:
+  Recibe un texto variable, y un patrón especificado mediante 'Wildcards' y decide si el texto
+  cumple con él o no. Retorna <B>True</B> o <B>False</B> segun el caso.
+Arguments:
+  Source    - Es el texto que se desea comprobar
+  Pattern   - Es el patrón de búsqueda
+Return Value:
+  Retorna <B>True</B> en el caso de que el texto cumpla con el patrón dado, <B>False</B> en su
+  defecto.
+Remarks:
+  Los patrones reconocidos son los habituales para búsqueda y selección de archivos, es decir:
+  los caracteres comodin '*' y '?'. Que puede ubicarse en cualquier posición dentro del texto
+  patron e intercalados con ellos deberán ir los otros caracateres que van a formar la plantilla de
+  búsqueda.
+<PRE>
+  Ejemplo:
+</PRE>
+<CODE>
+<B>if</B> Str.Wildcard(SomeFileName, '*dacr.r*') <B>then</B>
+   <B>begin</B>
+     {...}
+     // este código se ejecuta para todos los nombre de archivo que
+     // empiecen con cualquier cadena de caracteres, sigan con 'dacr',
+     // y que cuya extensión empiece con 'r'.
+   <B>end</B>
+</CODE>
+See also:
+  Str.IsWildCard@PChar
+---------------------------------------------------------------------------------------------------
+@@Str.IsWildCard@PChar
+Summary:
+  Indica si el texto contiene caracteres de wildcard (comodines)
+Description:
+  Sirve para saber de forma rápida si un texto dado contiene caracteres de wildcard o no
+Arguments:
+  Pattern - Texto de que se desea saber si contiene wildcards.
+Return Value:
+  Retorna <B>True</B> si el texto recibido en <B>Pattern</B> tiene wildcards, <B>False</B> en
+  su defecto.
+See also:
+  Str.WildCard@String@String  
+---------------------------------------------------------------------------------------------------
+@@Str.IsEmpty@string
+Summary:
+  Testea si un <B>string</B> dado es vacío (= '') o no.
+Remarks:
+  Simplemente retorna el resultado de evaluar:
+<CODE>
+    Result := (Buffer = '');
+</CODE>
+Arguments:
+  Buffer - El texto del que se desea saber si está vacío o no.
+Return Value:
+  Retorna <B>True</B> si el string está vacío, <B>False</B> en caso contrario.
+See also:
+  Str.NotEmpty@string
+---------------------------------------------------------------------------------------------------
+@@Str.NotEmpty@string
+Summary:
+  Testea si un <B>string</B> dado es distinto de vacío o no.
+Remarks:
+  Simplemente retorna el resultado de evaluar:
+<CODE>
+    Result := (Buffer <> '');
+</CODE>
+Arguments:
+  Buffer - El texto del que se desea saber si está vacío o no.
+Return Value:
+  Retorna <B>True</B> si el string no está vacío, <B>False</B> en caso contrario.
+See also:
+  Str.IsEmpty@string
+---------------------------------------------------------------------------------------------------
+@@Str.IsEqual@string@string
+Summary:
+  Evalúa si dos <B>string</B> son iguales o no utilizando para ello una comparación binaria.
+Description:
+  Ejecuta una comparación *binaria* entre los <B>string</B> recibidos por parámetro para determinar si son
+  iguales o no.
+Remarks:
+  Esta función realiza una comparación *binaria* a nivel bits de los contenidos de los dos
+  <B>string</B>. Eso implica que es case sensitive y que ademas no se detiene en caracteres
+  NULL (#0).
+Arguments:
+  S1 - Primer <B>string</B> a comparar.
+  S2 - Segundo <B>string</B> a comparar.
+Return Value:
+  Retorna <B>True</B> si los <B>string</B> son iguales, si son distintos retorna <B>False</B>
+See also:
+  Str.IsEqualText@string@string
+---------------------------------------------------------------------------------------------------
+@@Str.IsEqualText@string@string
+Summary:
+  Evalúa si dos <B>string</B> son iguales o no mediante una comparación normal.
+Description:
+  Ejecuta una comparación normal (ASCII) entre los <B>string</B> recibidos por parámetro para
+  determinar si son iguales o no.
+Remarks:
+  Esta función realiza una comparación de texto de los contenidos de los dos
+  <B>string</B>. Eso implica que es case insensitive.
+Arguments:
+  S1 - Primer <B>string</B> a comparar.
+  S2 - Segundo <B>string</B> a comparar.
+Return Value:
+  Retorna <B>True</B> si los <B>string</B> son iguales, si son distintos retorna <B>False</B>
+See also:
+  Str.IsEqual@string@string
+---------------------------------------------------------------------------------------------------
+@@Str.Null: string;
+---------------------------------------------------------------------------------------------------
+@@Str.ToLower(const Buffer: String): String;
+---------------------------------------------------------------------------------------------------
+@@Str.ToUpper(const Buffer: String): String;
+---------------------------------------------------------------------------------------------------
+@@Str.Capitalize(const Buffer: String): String;
+---------------------------------------------------------------------------------------------------
+@@Str.Crypt(pcDest: PChar; const Size: Word; const Key: String);
+---------------------------------------------------------------------------------------------------
+@@Str.Replicate(const Substr: String; const Count: Integer): String;
+---------------------------------------------------------------------------------------------------
+@@Str.ReplicateChar(const Character: Char; const Len: Integer): String;
+---------------------------------------------------------------------------------------------------
+@@Str.Copy(const Buffer: String; Index: Integer; const Count: Integer {$IFDEF USE_DEFPARAMS} = -1 {$ENDIF} ): String;
+---------------------------------------------------------------------------------------------------
+@@Str.Left(const Buffer: String; const Count: Integer): String;
+---------------------------------------------------------------------------------------------------
+@@Str.Right(const Buffer: String; const Count: Integer): String;
+---------------------------------------------------------------------------------------------------
+@@Str.Extract(var Buffer: String; Index: Integer; const Count: Integer {$IFDEF USE_DEFPARAMS} = -1 {$ENDIF} ): String;
+---------------------------------------------------------------------------------------------------
+@@Str.Zero(const Number: Integer; const Len: Byte): String;
+---------------------------------------------------------------------------------------------------
+@@Str.Pos(const Substr, Buffer: String; const Init: Integer {$IFDEF USE_DEFPARAMS} = 1 {$ENDIF}): Integer;
+---------------------------------------------------------------------------------------------------
+@@Str.GetPos(const Substr, Buffer: String; const Init: Integer; var FoundAt: Integer): Boolean;
+---------------------------------------------------------------------------------------------------
+@@Str.LastPos(const Substr, Buffer: String; Init: Integer {$IFDEF USE_DEFPARAMS} = 0 {$ENDIF} ): Integer;
+---------------------------------------------------------------------------------------------------
+@@Str.TrimLeft(const Buffer: String; Character: Char {$IFDEF USE_DEFPARAMS} = ' ' {$ENDIF}): String;
+---------------------------------------------------------------------------------------------------
+@@Str.TrimRight(const Buffer: String; Character: Char {$IFDEF USE_DEFPARAMS} = ' ' {$ENDIF}): String;
+---------------------------------------------------------------------------------------------------
+@@Str.Trim(const Buffer: String): String;
+---------------------------------------------------------------------------------------------------
+@@Str.Count(const Buffer, Substr: String): Integer;
+---------------------------------------------------------------------------------------------------
+@@Str.Len(const Buffer: String): Cardinal;
+---------------------------------------------------------------------------------------------------
+@@Str.TranslateAccent(var Buffer: String);
+---------------------------------------------------------------------------------------------------
+@@Str.Compare(const Buffer, Compare: String): Integer;
+---------------------------------------------------------------------------------------------------
+@@Str.CompareText(const Buffer, Compare: String; Complete: Boolean {$IFDEF USE_DEFPARAMS} = false {$ENDIF}): Integer; overload;
+---------------------------------------------------------------------------------------------------
+@@Str.CompareText(const Buffer, Compare: String; Count: Integer): Integer; overload;
+---------------------------------------------------------------------------------------------------
+@@Str.Move(const Source: String; Dest: PChar; const MaxLen: Integer);
+---------------------------------------------------------------------------------------------------
+@@Str.ReverseBuf(var Buffer: String);
+---------------------------------------------------------------------------------------------------
+@@Str.Reverse(const Buffer: String): String;
+---------------------------------------------------------------------------------------------------
+@@Str.DelimiterPos(const Delimiters, Buffer: String; BegPos, EndPos: Integer): Integer;
+---------------------------------------------------------------------------------------------------
+@@Str.LastDelimiter(const Delimiters, Buffer: String): Integer;
+---------------------------------------------------------------------------------------------------
+@@Str.NewLength(var Buffer: String; const Add: Integer): Integer;
+---------------------------------------------------------------------------------------------------
+@@Str.Add(var Buffer: String; const Substr: String): String;
+---------------------------------------------------------------------------------------------------
+@@Str.Delete(var Buffer: String; Index: Integer; Count: Integer {$IFDEF USE_DEFPARAMS} = -1 {$ENDIF}): String;
+---------------------------------------------------------------------------------------------------
+@@Str.Remove(var Buffer: String; const Substr: String): String;
+---------------------------------------------------------------------------------------------------
+@@Str.Insert(var Buffer: String; const Substr: String; Index: Integer {$IFDEF USE_DEFPARAMS} = 1 {$ENDIF}): String;
+---------------------------------------------------------------------------------------------------
+@@Str.DelControlChars(var Buffer: String);
+---------------------------------------------------------------------------------------------------
+@@Str.IIf(const Expr: Boolean; const RTrue: String; RFalse: String {$IFDEF USE_DEFPARAMS} = '' {$ENDIF}): String;
+---------------------------------------------------------------------------------------------------
+@@Str.ToFloat(const Buffer: string): Double; {$IFDEF USE_OVERLOAD} overload; {$ENDIF}
+---------------------------------------------------------------------------------------------------
+@@Str.ToFloat(const Buffer: string; const DecimalSeparators: string): Double; {$IFDEF USE_OVERLOAD} overload; {$ENDIF}
+---------------------------------------------------------------------------------------------------
+@@Str.ToCurrency(const Buffer: string): Currency; {$IFDEF USE_OVERLOAD} overload; {$ENDIF}
+---------------------------------------------------------------------------------------------------
+@@Str.ToHex(const Buffer: String): String;
+---------------------------------------------------------------------------------------------------
+@@Str.Scan(const Buffer, Format: string; const Args: array of const): Boolean;
+---------------------------------------------------------------------------------------------------
+@@Str.Format(const FormatText: string; const Args: array of const): string;
+---------------------------------------------------------------------------------------------------
+@@Str.ToFloat(const Buffer: string; Def: Double): Double; overload;
+---------------------------------------------------------------------------------------------------
+@@Str.ToInt(const Buffer: string): Integer; {$IFDEF USE_OVERLOAD} overload; {$ENDIF}
+---------------------------------------------------------------------------------------------------
+@@Str.ToChr(const S: String; const Def: Char): Char;
+---------------------------------------------------------------------------------------------------
+@@Str.ToCurrency(const Buffer: string; Def: Currency): Currency; {$IFDEF USE_OVERLOAD} overload; {$ENDIF}
+---------------------------------------------------------------------------------------------------
+@@Str.ToInt(const Buffer: string; Def: Integer): Integer; overload;
+---------------------------------------------------------------------------------------------------
+@@Str.RemoveDelimiters(const Buffer: String; L, R: Char): String;
+---------------------------------------------------------------------------------------------------
+@@Str.Fill(var Buffer: String; Size: LongWord {$IFDEF USE_DEFPARAMS} = 0; Chr: Char = #0 {$ELSE} ; Chr: Char {$ENDIF});
+---------------------------------------------------------------------------------------------------
+@@Str.FirstChar(const Buffer: String): Char;
+---------------------------------------------------------------------------------------------------
+@@Str.LastChar(const Buffer: String): Char;
+---------------------------------------------------------------------------------------------------
+@@Str.ArrayAdd(var A: TStringArray; const Value: String): Integer;
+---------------------------------------------------------------------------------------------------
+@@Str.ArrayFind(var A: TStringArray; const Value: String): Integer;
+---------------------------------------------------------------------------------------------------
+@@Str.ArrayDelete(var A: TStringArray; Index: Integer): Boolean;
+---------------------------------------------------------------------------------------------------
+@@Str.ArrayLast(const A: TStringArray): String;
+---------------------------------------------------------------------------------------------------
+@@Str.Make(Buffer: PChar; Size: LongWord): String;
+---------------------------------------------------------------------------------------------------
+@@Str.Append(var Buffer: String; const Value; Size: LongWord);
+---------------------------------------------------------------------------------------------------
+
+
+
+@@Str.Add@String@String
+Description
+Adiciona a un string, recibido en el parámetro <B>Buffer</B>,
+otro especificado en el parámetro <B>Substr</B>, y retorna el
+string resultante.
+Parameters
+Buffer :   Es el string al que se le desea agregar al final el
+           texto en <B>Substr</B>.
+Substr :   Es el texto que se desea agregar.
+
+Returns
+Retora el mismo string que queda en <B>Buffer</B> luego de
+ejecutar la operación.
+Summary
+Agrega un string a otro.
+
+@@Str.Append@String@@LongWord
+Description
+Agrega al string recibido en <B>Buffer</B>, un bloque de
+datos binario especificado como una variable <B>Value</B>,
+sin tipo y su respectivo tamaño en <B>Size</B>.
+Summary
+Agrega al string un bloque de datos binarios.
+Parameters
+Buffer :   El string al que se desea agregar el bloque de
+           datos.
+Value :    Recibe el bloque binario a agregar.
+Size :     Especifica el tamaño de tal bloque.
+
+@@Str.ArrayAdd@TStringArray@String
+Description
+Esta función que trabaja sobre un array de strings, y se
+utiliza para agregar al array un nuevo elemento al final de
+los ya existentes, de manera similar a como se haría con una
+lista. Recibe como parámetros el array al que se debe agregar
+el elemento, y el dato a agregar, y retorna la posición que
+le tocó al nuevo elemento.
+
+
+Summary
+Agrega un elemento a un array dinámico de strings.
+Parameters
+A :       Recibe por referencia el array al que hay que agregar
+          el elemento.
+Value :   Especifica el nuevo elemento a agregar.
+
+Returns
+Retorna como resultado el índice asignado al elemento
+agregado.
+See Also
+Str.ArrayAdd@TStringArray@String,
+Str.ArrayDelete@TStringArray@Integer,
+Str.ArrayFind@TStringArray@String, Str.ArrayLast@TStringArray
+
+@@Str.ArrayDelete@TStringArray@Integer
+Description
+Esta función pertenece al grupo que trabajan sobre arrays de
+strings, y sirve para eliminar un elemento del array dado su
+índice. Funciona como si el array fuera una lista, y al
+remover el elemento, todos los siguientes serán movidos una
+posición para que en el array no queden huecos.
+Summary
+Elemina un elemento de un array de strings.
+Parameters
+A :       Recibe por referencia el array del que hay que quitar
+          el elemento.
+Index :   Especifica el índice del elemento a quitar.
+
+Returns
+El resultado de esta función será True si el indice
+especificado está dentro de los límites del array A, si no
+retornará False.
+See Also
+Str.ArrayAdd@TStringArray@String,
+
+Str.ArrayDelete@TStringArray@Integer,
+
+Str.ArrayFind@TStringArray@String,
+
+Str.ArrayLast@TStringArray
+
+@@Str.ArrayFind@TStringArray@String
+Description
+Esta función permite encontrar en que posición dentro del
+array está un elemento dado. Recibe el array y el texto del
+elemento a encontrar y retorna su indice si este fue
+encontrado o, en caso contrario, retorna -1.
+Parameters
+A :       Recibe por referencia el array dentro del que se desea
+          encontrar el elemento.
+Value :   El elemento que se está buscando.
+
+Returns
+Si el elemento está en el array, retorna el indice de la
+posición en que este fue encontrado, si no se retorna el
+valor -1.
+See Also
+Str.ArrayAdd@TStringArray@String,
+Str.ArrayDelete@TStringArray@Integer,
+Str.ArrayFind@TStringArray@String, Str.ArrayLast@TStringArray
+Summary
+Busca un elemento en un array de strings y devuelve su
+indice.
+
+@@Str.ArrayLast@TStringArray
+Description
+Permite acceder rápidamente al último elemento del array
+recibido por parámetro.
+Summary
+Devuelve el último elemento del array.
+Parameters
+A :   Recibe el array de strings
+
+Returns
+Si el array <B>A </B>tiene elementos devuelve el valor del su
+último elemento, en caso contrario devuelve el string vacío:
+''. 
+See Also
+Str.ArrayAdd@TStringArray@String,
+Str.ArrayDelete@TStringArray@Integer,
+Str.ArrayFind@TStringArray@String, Str.ArrayLast@TStringArray
+
+@@Str.Between@string@string@string@string
+Description
+Parsea el string recibido en Buffer hasta encontrar el primer
+marcador, tomado de Starter. Una vez encontrado, busca la
+aparición del segundo marcador, tomado de Terminator. Luego
+retorna el substring que se encuentra entre estos dos
+marcadores.
+Summary
+Retorna el texto que se encuentra entre dos marcadores.
+See Also
+Str.Token@String@String@Integer, Str.Enumerate@String@String@string@Integer,
+Str.Split@string@string@string@string, Parameters
+Parameters
+Buffer :       El string del que se desea extraer el texto rodeado
+               por los marcadores.
+Starter :      Especifica el primer marcador a buscar, el de más a
+               la derecha.
+Terminator :   Especifica el segundo marcador a buscar, el de más a
+               la izquierda.
+Value :        Devuelve por referencia el substring encerrado entre
+               los marcadores.
+
+Returns
+Retorna True si pudo encontrar al menos uno de los
+marcadores, de modo que indica que el valor de salida fue
+asignado. En caso de que no se pueda encontrar el primer
+marcador de inicio, se retorna False y el valor de salida no
+es asignado.
+
+@@Str.Capitalize@String
+Description
+Hace que todas las palabras en el texto recibido por
+parámetro comiencen con mayúsculas. Para ello busca
+separadores de palabras en el texto, tales separadores son
+los caracteres #32, el guión '-', y el punto '.'
+Summary
+Pone en mayúsculas la letras que inician las palabras.
+Parameters
+Buffer :   Recibe el texto a capitalizar.
+
+Returns
+Retorna el texto capitalizado. En el caso de no encontrar
+ningun separador de palabras, se retorna el texto tal como se
+recibió.
+
+@@Str.Compare@String@String
+Description
+Ejecuta una comparación de los dos strings recibidos por
+parametro, tieniendo en cuenta las diferencias de tipo de
+letra: mayusculas \<\> minisculas, y retorna el valor
+relativo de ambas.
+Summary
+Compara dos strings teniendo en cuenta diferencias en tipo de
+letra.
+Parameters
+Buffer :    El primer string a comparar.
+Compare :   El segundo string a comparar.
+
+Returns
+Retorna el valor relativo de la comparación:
+
+
+<TABLE>
+valor negativo, <B>Result</B> \<   <B>Buffer</B> es menor a <B>Compare</B>
+ 0 significa:                       
+cero, <B>Result</B> = 0            <B>Buffer</B> es igual a <B>Compare</B>
+ significa:                         
+valor positivo, <B>Result</B> \>   <B>Buffer</B> es mayor a <B>Compare</B>
+ 0 significa:                       
+</TABLE>
+
+See Also
+Str.Compare@String@String@Integer, Str.CompareText@String@String@Boolean,
+Str.CompareText@String@String@Integer
+
+@@Str.Compare@String@String@Integer
+Description
+Ejecuta una comparación de los dos strings recibidos por
+parametro, tieniendo en cuenta las diferencias de tipo de
+letra: mayusculas \<\> minisculas, hasta un máximo de <B>Count</B>
+caracteres, y retorna el valor relativo de ambas.
+Summary
+\Summary Compara dos strings teniendo en cuenta diferencias
+de tipo de letra pero hasta un máximo de caracteres.é
+Parameters
+Buffer :    El primer string a comparar
+Compare :   El segundo string a comparar
+Count :     El máximo de caracteres a tener en cuenta en la
+            comparación.
+
+Returns
+Retorna el valor relativo de la comparación:
+
+
+<TABLE>
+valor negativo, <B>Result</B> \<   <B>Buffer</B> es menor a <B>Compare</B>
+ 0 significa:                       
+cero, <B>Result</B> = 0            <B>Buffer</B> es igual a <B>Compare</B>
+ significa:                         
+valor positivo, <B>Result</B> \>   <B>Buffer</B> es mayor a <B>Compare</B>
+ 0 significa:                       
+</TABLE>
+
+See Also
+Str.Compare@String@String, Str.CompareText@String@String@Boolean,
+Str.CompareText@String@String@Integer
+
+@@Str.CompareText@String@String@Boolean
+Description
+Ejecuta una comparación no sensible a diferencias de tipo de
+letra: mayusculas = minusculas, e insensible a locale
+seleccionado.
+Summary
+Compara dos strings de modo no sensible a diferencias en tipo
+de letra, y retorna su valor relativo.
+
+
+Parameters
+Buffer :     El primer string a comparar
+Compare :    El segundo string a comparar
+Complete :   Especifica si se ejecuta una comparación completa o no:
+             si la comparación es completa, entonces si los strings
+             son de distinto tamaño, aunque el texto inicial sea el
+             mismo se devolverá que son distintos, en cambio si la
+             comparación no es completa, se retornará que son iguales
+             aunque uno de ellos sólo sea el comienzo del otro.
+
+Returns
+Retorna el valor relativo de la comparación:
+
+
+<TABLE>
+valor negativo, <B>Result</B> \<   <B>Buffer</B> es menor a <B>Compare</B>
+ 0 significa:                       
+cero, <B>Result</B> = 0            <B>Buffer</B> es igual a <B>Compare</B>
+ significa:                         
+valor positivo, <B>Result</B> \>   <B>Buffer</B> es mayor a <B>Compare</B>
+ 0 significa:                       
+</TABLE>
+
+See Also
+Str.Compare@String@String, Str.Compare@String@String@Integer,
+Str.CompareText@String@String@Integer
+
+@@Str.CompareText@String@String@Integer
+Description
+Ejecuta una comparación no sensible a diferencias de tipo de
+letra: mayusculas = minusculas, e insensible a locale
+seleccionado, hasta un máximo de <B>Count</B> caracteres.
+Summary
+Compara dos strings de modo no sensible a diferencias en tipo
+de letra, pero hasta un valor máximo especificado de
+caracteres y retorna su valor relativo.
+Parameters
+Buffer :    Es el primer string a comparar
+Compare :   Es el segundo string a comparar
+Count :     Especifica el máximo numero de caracteres a tomar en
+            cuenta en la comparación.
+
+Returns
+Retorna el valor relativo de la comparación:
+
+
+<TABLE>
+valor negativo, <B>Result</B> \<   <B>Buffer</B> es menor a <B>Compare</B>
+ 0 significa:                       
+cero, <B>Result</B> = 0            <B>Buffer</B> es igual a <B>Compare</B>
+ significa:                         
+valor positivo, <B>Result</B> \>   <B>Buffer</B> es mayor a <B>Compare</B>
+ 0 significa:                       
+</TABLE>
+<B><COLOR 00000E></B></COLOR>
+See Also
+Str.Compare@String@String
+
+Str.Compare@String@String@Integer
+
+Str.CompareText@String@String@Boolean
+
+@@Str.Copy@String@Integer@Integer
+Description
+Permite extraer caracteres desde un string.Copia hasta <B>Count</B>
+caracteres del string <B>Buffer</B> partiendo desde el
+caracter espcificado en <B>Index</B> y el string resultante
+lo devuelve como resultado.
+Summary
+Copia un substring de un string dados un indice y una
+cantidad de caracteres.
+Remarks
+Los valores de <B>Count</B> y de <B>Index</B> permiten
+modificar la forma en que se comporta esta función:
+
+
+
+Si el valor de <B>Count</B> se omite, o lo que es lo mismo se
+le especifica como valor -1, la función copia desde el indice
+especificado hasta el final del string en <B>Buffer</B>.
+
+Por otro lado, si el valor especificado en <B>Count</B> es
+negativo distinto a -1, se tomará como cantidad la longitud
+total de <B>Buffer</B>, menos la cantidad de caracteres
+especificada por el valor absoluto de <B>Count</B> menos 1, o
+sea que el efecto es copiar hasta el final de Buffer menos <B>abs</B>(<B>Count)
+\- 1</B> caracteres.
+
+
+
+Del mismo modo, si el valor de <B>Index</B> es a su vez
+negativo, se tomara tal valor como significando la posicion
+contada desde el final del string en <B>Buffer</B>.
+Parameters
+Buffer :   El string del que se desea obtener un substring
+Count :    Cantidad de caracteres a copiar. ver Remarks.
+Index :    Posicion del primer caracter que se desea obtener en
+           el resultado
+
+Returns
+Retorna el string obtenido de tomar <B>Count</B> caracteres
+desde la posicion inicial especificada en <B>Index</B>.
+Example
+
+<CODE>Sil.Str.Copy('ABCDEFG',  1,  2); // devuelve 'AB'
+Sil.Str.Copy('ABCDEFG',  3,  2); // devuelve 'CD'
+Sil.Str.Copy('ABCDEFG',  4);     // devuelve 'DEFG'
+Sil.Str.Copy('ABCDEFG', -2,  1); // devuelve 'F'
+Sil.Str.Copy('ABCDEFG',  3, -2); // devuelve 'CDEF'
+</CODE>
+
+@@Str.Count@String@String
+Description
+Cuenta las veces que un substring aparece en otro
+string.Cuenta la cantidad de apariciones que se observan de
+un substring, especificado en <B>Substr</B>, dentro de otro
+string string, especificado en <B>Buffer</B>.
+Summary
+Cuenta la cantidad de apariciones de un substring en otro.
+Parameters
+Buffer :   Es el string dentro del que se desea buscar cuantas
+           apariciones de <B>Substr</B> hay.
+Substr :   El substring que se desea buscar.
+
+Returns
+Devuelve la cantidad de veces que se encontró <B>Substr</B>
+dentro de <B>Buffer</B>.
+Example
+
+<CODE>Sil.Str.Count('ABABABAB', 'AB'); //devuelve 4
+Sil.Str.Count('ABABABAB', 'ABA'); //devuelve 2
+Sil.Str.Count('ABABABAB', 'ABAB'); //devuelve 2
+</CODE>
+
+@@Str.Crypt@PChar@Word@String
+Description
+Permite hacer una codificación simple de un texto usando una
+clave especificada en <B>Key</B>. Trabaja sobre el buffer
+especificado modificando su contenido conforme opera en él.
+Summary
+Codifica un texto usando como algoritmo un XOR simple.
+Parameters
+pcDest :   Es el buffer que hay que encriptar.
+Size :     Tamaño del buffer, limita la operación de encriptación
+           a esta cantidad de bytes.
+Key :      Clave con la que hay que encriptar en texto en el
+           buffer.
+
+Remarks
+La rutina opera en el contenido de <B>pcDest</B>.
+
+@@Str.DelControlChars@String
+Description
+Esta rutina elemina de un string todos los caracteres de
+control que encuentra en ella.
+Summary
+Elimina de un string los caracteres de control que esta pueda
+contener.
+
+
+Parameters
+Buffer :   Recibe el string del que hay que quitar los caracteres
+           de control.
+<B><COLOR 00000E></B></COLOR>
+See Also
+Str.Delete@String@Integer@Integer
+
+@@Str.Delete@String@Integer@Integer
+Description
+Esta función remueve de un string, en <B>Buffer</B>, el
+substring especificado su la posicion de comienzo, en <B>Index</B>,
+y una cantidad de caracteres, en <B>Count</B>.
+
+
+Summary
+Elimina un substring de un string.
+
+
+Remarks
+Si el parametro <B>Count</B> es omitido, lo que equivale a
+especificarle un valor de -1, se elimina desde la posicion
+Index hasta el final de string.
+
+Si el parametro Index es negativo, se tomara como que la
+posicion del substring se mide de atras para adelante. Es
+decir, el indice se calculara descontando tantos caracteres
+como <B>Index</B> indica de la longitud del <B>Buffer</B>.
+Parameters
+Buffer :   Recibe el string del que hay que eliminar un
+           substring.
+Count :    Longitud del substring que se debe eliminar.
+Index :    Posicion en donde comienza el substring a eliminar.
+
+See Also
+Str.DelControlChars@String
+
+@@Str.DelimiterPos@String@String@Integer@Integer
+Summary
+No entiendo que hace: peguntar a Mariano.
+
+@@Str.IIf@Boolean@String@String
+Description
+Dependiendo del valor de verdad de la condicion inicial,
+retorna el primero parametro si esta es <B>True</B>, o en su
+defecto el segundo.
+
+
+Summary
+IF inmediato para el tipo string.
+
+
+Remarks
+Hay que tener en cuenta que aunque la condicion siempre tenga
+un valor determinado, siempre se evaluan los valores de las
+dos posibilidades, ya que por tratarse de un llamado a una
+funcion, antes de la invocacion se deben conocer los valores
+a pasar a sus argumentos. Por eso, en este caso no se aplica
+el caso típico en la evaluación booleana de que al conocer el
+valor de verdad de una expresion se pueda omitir las
+evaluaciones que ya no son necesarias.
+
+Esto implica que si los argumentos a esta funcion, son a su
+vez llamadas a funciones que puedan tener efectos secundarios
+hay que tener presente que los valores de *ambos* argumentos
+deben ser determinados, de modo que si ambos son funciones,
+las dos seran llamadas sin importar el valor de verdad que
+tenga <B>Expr</B>.
+Parameters
+Expr :     Condicion que determina cual de los seguientes
+           parametro se retornará.
+RFalse :   Valor que se retorna su la condicion <B>Expr</B> es <B>False</B>.
+RTrue :    Valor que se retorna su la condicion <B>Expr</B> es <B>True</B>.
+
+@@Str.Format@string@array of const
+Summary
+Formatea un texto de acuerdo a algunos especificadores de
+formato estándar.

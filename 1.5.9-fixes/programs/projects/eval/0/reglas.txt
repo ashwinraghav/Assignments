@@ -1,0 +1,138 @@
+
+alpha                 : [_a-zA-Z]
+digit                 : [0-9]
+bit                   : [01]
+oct                   : [0-7]
+
+sq                    : [']
+dq                    : ["]
+
+
+hexdigit              : digit | [a-fA-F]
+
+alphanum              : alpha | digit
+identifier            : alpha  alphanum*
+
+string                : sq ( [^sq] | sq sq )* sq |
+                        dq ( [^dq] | sq sq )* dq
+                        
+digits                : digit+
+decimal               : digit+ 'd'?
+sign                  : [+-]
+
+hexa                  : ('$'|'0x') hexdigit+ | hexdigit+ 'h'
+binary                : bit+ 'b'
+octal                 : '0' oct+ |  oct+ 'o'
+mantissa              : [.] digits
+
+fixed                 : sign? digits mantissa?
+exponent              : [eE] fixed
+float                 : fixed exponent?
+
+op_lor                : ||
+op_land               : &&
+op_or                 : |
+op_xor                : ^
+op_and                : &
+op_eq                 : ==
+op_neq                : !=
+op_less               : <
+op_greater            : >
+op_lesseq             : <=
+op_greatereq          : >=
+op_shr                : >>
+op_shl                : <<
+plus                  : +
+minus                 : -
+mul                   : *
+div                   : /
+mod                   : %
+neg                   : ~
+not                   : !
+inc                   : ++
+dec                   : --
+
+assign-op             : one of  ( =, *=, /=, %=, +=, -=, >>=, <<=, &=, ^=, |= )
+add-op                : one of  (plus, minus)
+mult-op               : one of  (mul, div, mod)
+eq-op                 : one of  (op_eq, op_neq)
+rel-op                : one of  (op_less, op_greater, op_lesseq, op_greatereq)
+sh-op                 : one of  (op_shr, shl-op)
+incr-op               : one of  (inc, dec)
+unary-op              : one of  (*, &, plus, minus, not, neg)
+
+-----------------------------------------------------------------------
+A -> Aa|b
+<->
+A -> bR y R -> aR|@
+-----------------------------------------------------------------------
+
+expression:
+  assignment
+  expression          ,           assignment
+
+assignment:
+  conditional
+  logical-or          assign-op   assignment
+
+conditional:
+  logical-or
+  logical-or          ?           expression : assignment
+
+logical-or:
+  logical-and
+  logical-or          op_lor      logical-and
+
+logical-and:
+  inclusive-or
+  logical-and         op_land     inclusive-or
+
+inclusive-or:
+  exclusive-or
+  inclusive-or        op_or       exclusive-or
+
+exclusive-or:
+  and
+  exclusive-or        op_xor      and
+
+and:
+  equality
+  and                 op_and      equality
+
+equality:
+  relational
+  equality            eq-op       relational
+
+relational:
+  shift
+  relational          rel-op      shift
+
+shift:
+  addition
+  shift               sh-op       addition
+
+addition:
+  multiplication
+  addition            add-op      multiplication
+
+multiplication:
+  unary
+  multiplication      mult-op     unary
+
+unary:
+  postfix
+  incr-op             multiplication
+  unary-op            multiplication
+
+postfix:
+  primary
+  postfix             [ expression ]     // array indexing
+  postfix             ( expression )     // function call
+  postfix             incr-op
+
+primary:
+  literal
+  identifier
+  ( expression )
+
+

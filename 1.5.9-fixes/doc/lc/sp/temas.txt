@@ -1,0 +1,23 @@
+guids		mpo
+sockets		mpo
+serialport	mpo
+files		mpo
+unicode		mpo
+threads		mpo
+dlls		mpo
+
+pipes		dad
+ipc		dad
+shm		dad
+wait		dad
+timer		dad
+locale		dad
+timezone	dad
+
+process		ldc
+modules		ldc
+version		ldc
+environment	ldc
+network		ldc
+resource	ldc
+registry	ldc/*

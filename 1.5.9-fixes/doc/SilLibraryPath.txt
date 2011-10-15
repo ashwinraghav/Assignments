@@ -1,0 +1,14 @@
+
+# use environment variables: Delphi 6 or later
+SILVERSION = <VERSION>	// e.g. 1.5.2
+SIL = $(YOUR_LOCATION)\SIL\$(SILVERSION)\source
+
+
+# paths to add in Delphi's library path
+$(SIL)\lib;
+$(SIL)\lib\hw\<HW>;	// HW: currently only x86
+$(SIL)\lib\lc\<LC>;	// LC: use sp or en
+$(SIL)\lib\os\<OS>;	// OS: use win in Delphi and linux in Kylix
+$(SIL)\lib\rtl\dp<DP>; 	// replace NN with dp50, dp60 or kx20
+$(SIL)\tool;
+$(SIL)\tool\os\<OS>;	// Same as above.

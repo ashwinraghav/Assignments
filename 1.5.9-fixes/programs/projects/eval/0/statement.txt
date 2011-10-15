@@ -1,0 +1,99 @@
+statement:
+  BEGIN             statement_list
+  statement_body
+
+statement_list:
+  END
+  statement         statement_list
+
+statement_body:
+  WHILE             while
+  FOR               for
+  REPEAT            repeat_until
+  DO                do
+  SWITCH            switch_case
+  IF                if
+  BREAK             SEMICOLON
+  CONTINUE          SEMICOLON
+  RETURN            return              SEMICOLON
+  TYPEID            declaration_list    SEMICOLON
+  expression        SEMICOLON
+
+subexpression:
+    LPAREN  expression  RPAREN
+
+while:
+    { @loop:        }
+    subexpression
+    { JMP IF FALSE     @end  }
+    statement
+    { JMP     @loop }
+    { @end:         }
+
+
+for:
+    LPAREN        expression1
+    { @loop:        }
+    SEMICOLON     expression2
+    { JMP IF FALSE     @end  }
+    SEMICOLON     expression3
+    RPAREN        statement1
+    { JMP     @loop }
+    { @end:         }
+
+if:
+    subexpression
+      { JMP IF FALSE    @else}
+    statement     
+      { JMP             @exit}
+{@else:}
+    else
+{@exit:}
+
+else:
+    ELSE  statement
+    @
+
+repeat_until:
+    statements
+    UNTIL
+    subexpression
+
+do:
+                  statement     WHILE         subexpression
+
+switch_case:
+    subexpression               BEGIN       switch_body     END
+
+switch_body:
+    switch_items    switch_default
+
+switch_items:
+    CASE            swith_item
+    @
+
+swith_item:
+    expression      swith_actions
+
+swith_actions:
+  swith_action     switch_items
+
+swith_action:
+    COLON           statement
+
+switch_default:
+    DEFAULT         swith_action     
+    @
+
+return:
+    subexpression
+    expression
+    @
+
+declaration_list:
+    IDENTIFIER    declaration     declaration_list
+    @
+
+declaration:
+        
+

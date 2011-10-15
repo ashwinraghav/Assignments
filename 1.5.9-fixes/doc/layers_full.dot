@@ -1,0 +1,87 @@
+digraph SilLayoutComplete
+  {
+    node [shape=box, fontname=Verdana, fontsize=10];
+    edge [fontname=Verdana, fontsize=8]
+    fontname=Verdana;
+
+    {
+    node [style=invis];
+    edge [style=invis];
+
+    Level0 -> Level1 -> Level2 -> Level3 -> Level4 -> Level5 -> Level6 -> Level7 -> Level8 -> Level9 -> Level10;
+
+    }
+
+  base        [label = "Base\nInterface", style=filled];
+  baseim      [label = "Base\nImplementation"];
+  lib         [label = "Library\nInterface", style=filled];
+  libim       [label = "Library\nImplementation"];
+  os          [label = "OS\nInterface", style=filled];
+  osim        [label = "OS\nImplementation"];
+
+  fwk         [label = "Services\nInterface", style=filled];
+
+  hw          [label = "Lowlevel\nAssembler\nPrimitives"];
+  lc          [label = "Localization\nStrings"];
+  rtl         [label = "Compiler\nAbstraction"];
+
+  dp6         [label = "Delphi\n6 & 7"];
+  fpc         [label = "Free pascal"];
+  dp9         [label = "BDS\n9 & 10"];
+  
+  x86         [label = "x86\nCPUs"];
+
+  sp         [label = "Spanish"];
+  en         [label = "English"];
+  compiler   [shape=diamond,label = "one of"];
+  language   [shape=diamond,label = "one of"];
+  arch   [shape=diamond,label = "one of"];
+  platform   [shape=diamond,label = "one of"];
+
+  
+  os -> lib -> base [label="depends"];
+  fwk -> { lib; os; base }  [label="depends"];
+  
+  libim -> { base; os; } [label="uses"];
+  osim -> { base; lib } [label="uses"];
+
+  baseim -> base [label="uses"];
+  libim -> lib [label="uses"];
+  osim ->  os [label="uses"];
+  
+
+  baseim -> { lc; hw; rtl } [label="depends"];
+  osim -> { lc ; hw; rtl } [label="depends"];
+  libim -> { lc; hw; rtl } [label="depends"];
+
+  rtl -> compiler [label="composed"];
+  lc -> language [label="composed"];
+  hw -> arch [label="composed"];
+  osim -> platform [label="composed"];
+
+  compiler -> { dp6; fpc; dp9 };
+  language -> { sp; en };
+  arch -> { x86; };
+  platform -> { win; linux };
+
+
+  {rank=same; Level0; fwk }
+  {rank=same; Level1; os }
+  {rank=same; Level2; lib }
+  {rank=same; Level3; base }
+
+
+  {rank=same; Level4; osim }
+  {rank=same; Level5; libim }
+  {rank=same; Level6; baseim }
+
+
+  {rank=same; Level8; hw; rtl; lc; }
+  {rank=same; Level9; compiler; language; platform; arch }
+  {rank=same; Level10; dp6; fpc; dp9  }
+  {rank=same; Level10; sp; en  }
+  {rank=same; Level10; x86 }
+  {rank=same; Level10; linux; win }
+
+  } 
+

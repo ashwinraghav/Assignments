@@ -1,0 +1,9 @@
+  uso:
+
+  sendmail
+    /server smtp.apre.siderca.ot
+    /from peperino
+    /to fulano@mail.com
+    /subject sendmail
+    /text hola mundo
+    /attach c:\back\pepe.txt

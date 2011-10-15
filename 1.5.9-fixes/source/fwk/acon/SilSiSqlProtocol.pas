@@ -1,0 +1,129 @@
+{********************************************************************************
+ *                  Standard Interface Library (SIL)                            *
+ *                                                                              *
+ *       General purpose library whose design is based in STRONG                *
+ *   use of interfaces.                                                         *
+ *                                                                              *
+ *                                                                              *
+ *     Copyright (C) 2000 Mariano Podestá    antiriad@gmail.com                 *
+ *     Copyright (C) 2000 Leandro Conde      lconde@str.com.ar                  *
+ *     Copyright (C) 2000 Lisandro Podestá   lisandrop@movi.com.ar              *
+ *                                                                              *
+ *     See License.txt for details.                                             *
+ *                                                                              *
+ *   This library is free software; you can redistribute it and/or              *
+ *   modify it under the terms of the GNU Lesser General Public                 *
+ *   License as published by the Free Software Foundation; either               *
+ *   version 2.1 of the License, or (at your option) any later version.         *
+ *                                                                              *
+ *   This library is distributed in the hope that it will be useful,            *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU          *
+ *   Lesser General Public License for more details.                            *
+ *                                                                              *
+ *   You should have received a copy of the GNU Lesser General Public           *
+ *   License along with this library; if not, write to the Free Software        *
+ *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA  *
+ *                                                                              *
+ ********************************************************************************}
+
+unit SilSiSqlProtocol;
+
+interface
+
+uses
+  Sil,
+  SilData,
+  SilSiProtocolBase;
+
+type
+  RDbConnectionInfo = record
+    Driver: String;
+    Server: String;
+    User: String;
+    Password: String;
+    Params: TStringArray;
+  end;
+
+  IProtSqlClient = interface (IFormatedProtocol)
+    ['{73928373-567E-11D4-988A-00104B0FA1EF}']
+    function GetTimeout: LongWord;
+    procedure SetTimeout(Value: LongWord);
+    function WaitGreetings: String;
+    procedure OpenDatabase(const AppID, Url: String); overload;
+    procedure OpenDatabase(const Url: String); overload;
+    procedure CloseDatabase;
+    function Query(const Text: String): IDataRowset;
+    function Execute(const Text: String): LongWord;
+    function StoredProc(const Text: String; var Params: IValueList; WithRecords: Boolean = true): IDataRowset;
+    function QueryFields(const Command: String; out Fields: IValueList): Boolean;
+    function QueryStoredProcParams(const ProcName: String; out Params: IValueList): Boolean;
+    property Timeout: LongWord read GetTimeout write SetTimeout;
+  end;
+
+  IProtSqlServer = interface (IFormatedProtocol)
+    ['{73928374-567E-11D4-988A-00104B0FA1EF}']
+    function GetDbSession: String;
+    function GetRemoteBuild: LongWord;
+    procedure SetDbSession(const Value: String);
+    procedure Greetings;
+    property DbSession: String read GetDbSession write SetDbSession;
+    property RemoteBuild: LongWord read GetRemoteBuild;
+  end;
+
+  TProtSqlServerEvent = record
+    Sender: IProtSqlServer;
+    AppID: String;
+    Info: RDbConnectionInfo;
+    ResultCode: Integer;
+  end;
+
+  TProtSqlCloseEvent = record
+    Sender: IProtSqlServer;
+    ResultCode: Integer;
+  end;
+
+  TProtSqlQueryEvent = record
+    Sender: IProtSqlServer;
+    QueryStr: String;
+    Rowset: IDataRowset;
+    ResultCode: Integer;
+  end;
+
+  TProtSqlExecuteEvent = record
+    Sender: IProtSqlServer;
+    QueryStr: String;
+    Records: Integer;
+    ResultCode: Integer;
+  end;
+
+  TProtSqlStoredProcEvent = record
+    Sender: IProtSqlServer;
+    ProcName: String;
+    Params: IValueList;
+    WithRecords: Boolean;
+    Rowset: IDataRowset;
+    ResultCode: Integer;
+  end;
+
+  TProtSqlQueryFieldsEvent = record
+    Sender: IProtSqlServer;
+    Command: String;
+    Fields: IValueList;
+    ResultCode: Integer;
+  end;
+
+  IProtSqlServerEvents = interface
+    ['{12C9C631-5D8E-11D4-988B-00104B0FA1EF}']
+    procedure OnOpenDatabase(var Event: TProtSqlServerEvent);
+    procedure OnCloseDatabase(var Event: TProtSqlCloseEvent);
+    procedure OnQuery(var Event: TProtSqlQueryEvent);
+    procedure OnExecute(var Event: TProtSqlExecuteEvent);
+    procedure OnStoredProc(var Event: TProtSqlStoredProcEvent);
+    procedure OnQueryFields(var Event: TProtSqlQueryFieldsEvent);
+    procedure OnQueryStoredProcParams(var Event: TProtSqlQueryFieldsEvent);
+  end;
+
+implementation
+
+end.

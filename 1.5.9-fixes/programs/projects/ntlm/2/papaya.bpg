@@ -1,0 +1,32 @@
+#------------------------------------------------------------------------------
+VERSION = BWS.01
+#------------------------------------------------------------------------------
+!ifndef ROOT
+ROOT = $(MAKEDIR)\..
+!endif
+#------------------------------------------------------------------------------
+MAKE = $(ROOT)\bin\make.exe -$(MAKEFLAGS) -f$**
+DCC = $(ROOT)\bin\dcc32.exe $**
+BRCC = $(ROOT)\bin\brcc32.exe $**
+#------------------------------------------------------------------------------
+PROJECTS = ntlm2.exe prueba.exe ntlm3.exe ntlm4.exe Project1.exe
+#------------------------------------------------------------------------------
+default: $(PROJECTS)
+#------------------------------------------------------------------------------
+
+ntlm2.exe: ntlm2.dpr
+  $(DCC)
+
+prueba.exe: ..\..\..\..\..\..\..\..\soft\ouch\received\Diego Degese\ntlm\example\prueba.dpr
+  $(DCC)
+
+ntlm3.exe: ..\3\ntlm3.dpr
+  $(DCC)
+
+ntlm4.exe: ..\4\ntlm4.dpr
+  $(DCC)
+
+Project1.exe: ..\..\http\0\Project1.dpr
+  $(DCC)
+
+

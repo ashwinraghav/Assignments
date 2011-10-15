@@ -1,0 +1,20 @@
+{DONE : problema de asociatividad de los operadores: son siempre por derecha.}
+{TODO : definicion de tipos construidos}
+{TODO : manejo de excepciones}
+{TODO : templates??}
+{TODO : declaracion de records}
+{TODO : manejo de scopes}
+{TODO : declaracion de funciones}
+{TODO : declaracion de variables}
+{TODO : indexacion de arrays!!}
+{TODO : acceso a properties de objetos}
+{TODO : llamada a metodos de interfases Delphi}
+{TODO : llamada a metodos de objetos Delphi}
+{DONE :
+operador ->
+operador .}
+{TODO : sobrecarga de operadores y funciones}
+{TODO : checkeo de tipos}
+{TODO : soporte de tipos}
+{TODO : atributos heredados y sintetizados en contextos de ejecucion recursivo}
+{TODO : continue}

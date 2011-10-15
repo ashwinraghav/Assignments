@@ -1,0 +1,126 @@
+{********************************************************************************
+ *                  Standard Interface Library (SIL)                            *
+ *                                                                              *
+ *       General purpose library whose design is based in STRONG                *
+ *   use of interfaces.                                                         *
+ *                                                                              *
+ *                                                                              *
+ *     Copyright (C) 2000 Mariano Podestá    marianop@intercom.com.ar           *
+ *     Copyright (C) 2000 Leandro Conde      lconde@str.com.ar                  *
+ *     Copyright (C) 2000 Lisandro Podestá   lisandrop@movi.com.ar              *
+ *                                                                              *
+ *     See License.txt for details.                                             *
+ *                                                                              *
+ *   This library is free software; you can redistribute it and/or              *
+ *   modify it under the terms of the GNU Lesser General Public                 *
+ *   License as published by the Free Software Foundation; either               *
+ *   version 2.1 of the License, or (at your option) any later version.         *
+ *                                                                              *
+ *   This library is distributed in the hope that it will be useful,            *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU          *
+ *   Lesser General Public License for more details.                            *
+ *                                                                              *
+ *   You should have received a copy of the GNU Lesser General Public           *
+ *   License along with this library; if not, write to the Free Software        *
+ *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA  *
+ *                                                                              *
+ ********************************************************************************}
+
+package siltool143d60;
+
+{$R *.res}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION OFF}
+{$OVERFLOWCHECKS ON}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE ON}
+{$STACKFRAMES ON}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST ON}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'SIL: Extra tools runtime'}
+{$RUNONLY}
+{$IMPLICITBUILD OFF}
+
+requires
+  vcl,
+  siltext143d60,
+  sil143d60;
+
+contains
+  SilSiAvlTree in 'tool\SilSiAvlTree.pas',
+  SilCoder in 'tool\SilCoder.pas',
+  SilData in 'tool\SilData.pas',
+  SilDataClasses in 'tool\SilDataClasses.pas',
+  SilMath in 'tool\SilMath.pas',
+  SilProtocol in 'tool\SilProtocol.pas',
+  SilScDateMapper in 'tool\SilScDateMapper.pas',
+  SilSeCoords in 'tool\SilSeCoords.pas',
+  SilSeDateMapper in 'tool\SilSeDateMapper.pas',
+  SilSfDateMapper in 'tool\SilSfDateMapper.pas',
+  SilSgDateMapper in 'tool\SilSgDateMapper.pas',
+  SilAVL in 'tool\SilAVL.pas',
+  SilSiBlindProtocol in 'tool\SilSiBlindProtocol.pas',
+  SilSiCipher in 'tool\SilSiCipher.pas',
+  SilSiCipherList in 'tool\SilSiCipherList.pas',
+  SilSiCoords in 'tool\SilSiCoords.pas',
+  SilSiDataAccess in 'tool\SilSiDataAccess.pas',
+  SilSiFileAccessProtocol in 'tool\SilSiFileAccessProtocol.pas',
+  SilSiFileTransferProtocol in 'tool\SilSiFileTransferProtocol.pas',
+  SilSiHash in 'tool\SilSiHash.pas',
+  SilSiLinearTic in 'tool\SilSiLinearTic.pas',
+  SilSiSocks5Protocol in 'tool\SilSiSocks5Protocol.pas',
+  SilSiSqlProtocol in 'tool\SilSiSqlProtocol.pas',
+  SilSiUrl in 'tool\SilSiUrl.pas',
+  SilSkCoordsMapper in 'tool\SilSkCoordsMapper.pas',
+  SilSmAvlMemoryNodes in 'tool\SilSmAvlMemoryNodes.pas',
+  SilSmAvlTree in 'tool\SilSmAvlTree.pas',
+  SilSmBlindProtocol in 'tool\SilSmBlindProtocol.pas',
+  SilSmCipherEqualize in 'tool\SilSmCipherEqualize.pas',
+  SilSmCipherList in 'tool\SilSmCipherList.pas',
+  SilSmCipherSimpleMix in 'tool\SilSmCipherSimpleMix.pas',
+  SilSmCoordsMapping in 'tool\SilSmCoordsMapping.pas',
+  SilSmDataField in 'tool\SilSmDataField.pas',
+  SilSmDataIndex in 'tool\SilSmDataIndex.pas',
+  SilSmDataRowset in 'tool\SilSmDataRowset.pas',
+  SilSmDateMapper in 'tool\SilSmDateMapper.pas',
+  SilSmFileAccessProtocol in 'tool\SilSmFileAccessProtocol.pas',
+  SilSmFileTransferProtocol in 'tool\SilSmFileTransferProtocol.pas',
+  SilSmLinearMapper in 'tool\SilSmLinearMapper.pas',
+  SilSmLinearTic in 'tool\SilSmLinearTic.pas',
+  SilSmMime in 'tool\SilSmMime.pas',
+  SilSmPop3Client in 'tool\SilSmPop3Client.pas',
+  SilSmSmtpClient in 'tool\SilSmSmtpClient.pas',
+  SilSmSocks5Protocol in 'tool\SilSmSocks5Protocol.pas',
+  SilSmSqlProtocol in 'tool\SilSmSqlProtocol.pas',
+  SilSmTic in 'tool\SilSmTic.pas',
+  SilSmTicsEnumerator in 'tool\SilSmTicsEnumerator.pas',
+  SilSmUrl in 'tool\SilSmUrl.pas',
+  SilStAvlTree in 'tool\SilStAvlTree.pas',
+  SilStCipher in 'tool\SilStCipher.pas',
+  SilStCoords in 'tool\SilStCoords.pas',
+  SilStDataRowset in 'tool\SilStDataRowset.pas',
+  SilStHash in 'tool\SilStHash.pas',
+  SilStMime in 'tool\SilStMime.pas',
+  SilStProtocol in 'tool\SilStProtocol.pas',
+  SilStUrl in 'tool\SilStUrl.pas',
+  SilURL in 'tool\SilURL.pas',
+  SilSmEblisProtocol in 'tool\SilSmEblisProtocol.pas',
+  SilSiPop3 in 'tool\SilSiPop3.pas',
+  SilSiEblisProtocol in 'tool\SilSiEblisProtocol.pas',
+  SilLog in 'tool\SilLog.pas';
+
+end.

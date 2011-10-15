@@ -1,0 +1,85 @@
+now() * 24 * 60 * 60
+
+x = y = t = 7
+
+   (aa >> 4 & 1)     != 0 
+&& x  >> 1 & ~0x4  >  0  
+|| y  >> 2 ^ ~0x10 <  0 
+&& bb << 1 &  0xFE == 1
+
+
+a = r + -a - z - o
+
+
+a << t << s << x << 0
+
+a >> t >> s >> x >> 0
+
+
+x, y, z
+
+kk = 10;
+
+
+for (j = 0; j < 10; j++)
+for (i = 0; i < 10; i++)
+{
+  print ("print: = ", j, i);
+}
+
+
+for (i = 0; i < 3; i++)
+{
+  if ( i == 1 ) break;
+}
+
+for (i = 0; i < 100; i++) 
+   print(i);
+
+
+while ( i-- )
+{
+  if ( i == 1 ) break;
+}
+
+
+
+any j, k;
+
+do
+  {
+    if ( i == 1 ) 
+      break;
+  }
+while (i < 5)
+
+
+switch (i)
+{
+  case 1:  i=2; return (0);
+  case 0:  i++; return (1);
+  default: i=0; return (2);
+}
+
+
+  if (i >= j)
+    break;
+
+
+$buffer
+
+true
+
+x(y)
+
+x -> y
+
+x[r]
+
+
+
+if (msg == "OK")
+   return (1);
+else
+   return (0);
+

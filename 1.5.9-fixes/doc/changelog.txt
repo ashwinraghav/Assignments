@@ -1,0 +1,2049 @@
+version developing-1.5.9-5.1 @ 2005-09-09 by leus,marianop
+
++ NEW:      created a Makefile to handle things such as automatic compilation,
+        archive creation, an working copy cleaning.
+        
++ FIX:      corrected the implementation of the expression and script evaluator 
+        that were broken after the change in TSilObject. Now works OK.
+
++ FIX:      added the implementation of Sil.Os.Thread.IsMain to the Windows part.
+        It were only implemented in the linux port.
+        
++ FIX:      changed some uses of the deprecated Sil.Str.CompareText for the new 
+        Sil.Text.Compare
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+version developing-1.5.9-5 @ 2005-09-03 by leus,marianop
+
++ ADD:      added a new datatype kind to the TypeReader: PChar.
++ ADD:      added a new overload for Cancel in the interface IQueue. 
+        This one returns the items waiting for processing as a LinkeList.
+
++ FIX:      corrected a bug in the implementation of the TSilContainerEnumerator.
++ ADD:      added new overloaded construction routines for TSilInterfaceListContainer.
++ NEW:      added a new implementation of IPointerList using a container as a basis.
++ NEW:      added a TSilPointerComparator to handle comparisson of pointers.
++ NEW:      added a function Sil.Os.Thread.IsMain to ask wether a thread is the 
+        Main Thread more easily.
+        
++ FIX:      the ThreadList were incorrectly initializing itself as a non thread-safe list.
++ ADD:      Major work in progress in the port to linux/freepascal.
+
++ FIX:      changes in the Notifier service so one can wait on a event for delivery.
+
++ FIX:      In ResourcePool, some cleaning and deactivation upon destruction were missing.
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+version developing-1.5.9-4.1 @ 2005-09-01 by leus,marianop
+
++ FIX:      corrected the TypeInfo invoker to correctly handle various datatypes, primarily those that need finalization. 
+                Yet, they're not thoroughly tested, though.
+        
++ ADD:      added Str.Coalesce and Vart.Coalesce, as a mimic of the standard SQL functions.
++ NEW:      Introduced new constructions for generic type handling, specifically there are 
+            new objects for generic type conversion. 
+                See units: SilL?TypeConversion, SilL?TypePointer, SilLmTypeConverter.
+
++ CHANGE:   We're previously removed several interfaces from TSilObject, but they were needed by some 
+        implementations inside the library, so we added them to TSilInterfacedObject, which is the correct 
+        holder for extra features. TSilObject is mainly for tiny implementations in which is important not 
+        to consume extra memory. 
+            We're corrected various units in which this removal provoked many malfunctions, 
+        in particular: SilLmTrace, in which IReferenceable were used to get the instance pointer 
+        of a class implementing a particular interface.
+        
++ ADD:      added units for the freepascal 2.0 port of this library, in the directory source/lib/rtl/fp20
+
++ ADD:      Added a new method GetValueType to the XmlArguments interface, which infers the datatype 
+        of the argument by checking some characters of the string value itself.
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+version developing-1.5.9-4 @ 2005-08-25 by leus,marianop
+
+in Defines.inc
+    added definitions for the freepascal compiler 2.00
+    
+in Sil.pas
+    added export of new tool Text
+    added export of IMemberList
+    added new export of Wstr tool under the name "Wide"
+    added export of interface ILockingSet
+    added export of the new IWriteOnlyStream
+    
+in SilBeDataType.pas
+    changed definition of record RDataType to hold the size of a shortstring type
+    
+SilBtChr.pas
+    fixed error function Chr.Name: indexing the const array out of range for non-control characters 
+    
+SilBtDataType.pas
+    changed the RDataType constructor two receive de size (defaults to 0)
+    added functions to map between different sets of type constants such as: 
+        TTypeKind to RDataType, 
+        TDataType to PTypeInfo
+        RDataType to PTypeInfo
+        TVarRec's VType to RDataType
+        RDataType & TDataType to TVarRec's VType
+
+SilBtError.pas
+    added new overloads for the PResStringRec type to receive resourcestrings
+    
+SilBtFloat.pas
+    added a new version of FromStr which raises an exception upon reception of an invalid string.
+    
+SilBtInt.pas
+    replaced a const string variable with a initialized PChar variable.
+    
+SilBtMem.pas
+    added a new function CheckSum16 to the tool Mem which, as the name states, 
+        calculates a simple checksum from a memory buffer taking a work (16 bits) 
+        at a time.
+    
+SilBtStr.pas
+    added new function TokenLast
+    added new overload of function Replace which receives an open-array of substrings to search for.
+    changed IsWildCard: removed Separator argument.
+    these functions has been deprecated due to the introduction of the new Text tool:
+        IsEqualText replaced by Text.IsEqual,
+        CompareText replaced by Text.Compare,
+        TextCompare replaced by Text.Compare,
+        TextPos replaced by Text.Pos,
+        and so on ...
+    added a new overload ToInt which Trims the string before converting.
+    removed RemoveLiterals
+    changed ArrayFind array parameter from var to const
+    
+SilBtStringPtr.pas
+    changed the use of Str.CompareText for Text.Compare
+    
+SilBtText.pas
+    new unit
+    
+SilBtTypeInfo.pas
+    changed Enum.Value and Enum.ToStr to handle Sets properly
+    
+SilBtVart.pas
+    added new check function Vart.IsLarge
+    
+SilBtWideStringPtr.pas
+    changed the use of Str.CompareText for Text.Compare
+
+SilContainer.pas, SilLiContainer.pas
+    renamed ISequence as IContainerSequence
+    
+SilContainer.pas    
+    published some missing IContainerXXX interfaces
+    
+SilLiContainer.pas
+    generated new IContainerSequenceXXX interfaces where XXX is Static or Dynamic
+    
+SilLeMemberList
+    new unit
+    
+SilLfTraits.pas
+    fixed some overloading ambiguities
+    
+SilLiDataType.pas
+    added new overload Get for the ITypeInfo interface.
+    
+SilLiMemberList.pas
+    extracted the RMemberValue record to a new SilLeMemberList unit.
+    added some missing functionality to the member list.
+    
+SilLiStream.pas
+    changed ITextStream inheritance from IStream to IRandomStream
+    added new IWriteOnlyStream
+    
+SilLiTypeInfo.pas
+    changed the ITypeInfo interface to export the corresponding Delphi's PTypeInfo
+    
+SilLiValue.pas
+    added missing conversion to type Double
+    
+SilLkContainer.pas
+    added ISyncronizable to the interface implementation list of TSilContainer.
+    removed Sil from uses clause and added only the units needed.
+    
+SilLkList.pas
+    reversed the interface implementation order between IItems and IEnumerable
+    added an explicit cast in the FTypeData assignment
+    
+SilLkNamedValues.pas
+    fixed some overloading ambiguities
+    changed the use of Str.CompareText for Text.Compare
+
+SilLkObject.pas
+    removed unneeded interfaces from TSilObject's implementation list
+    generated a fake ILock implementation to return when the object doesn't 
+        support locking.
+
+SilLkTypeInfo.pas
+    changed the ITypeInfo interface to export the corresponding Delphi's PTypeInfo
+    removed Sil from uses clause and added only the units needed.
+
+SilLmContainerEnumerator.pas
+    renamed ISequence as IContainerSequence.
+    generated new IContainerSequenceXXX interfaces where XXX is Static or Dynamic.
+    added new constructor which initializes the Enumerator form a Static Sequence.
+    fixed some finalization errors.
+    fixed an error in the GetCurrent function.
+    
+SilLmContainerList.pas
+    added ILockingSet to the interface implementation list of TSilBaseList.
+    
+SilLmContainerSequence.pas
+    changes in sequence implementations forced by changes in SilLiContainer. 
+        now there's two kinds of sequences: 
+            the Static ones, which enumerates over a Static Container, asking 
+                only for Static Cursors.
+            and the Dynamic ones, which enumerates over a Dynamic container and
+                asks for Dynamic cursors.
+
+SilLmContainerStrings.pas
+    changed the use of Str.CompareText for Text.Compare
+
+SilLmContainerVector.pas
+    added ILockingSet to the interface implementation list of TSilBaseList.
+    
+SilLmDataTypeList.pas
+    changed the ITypeInfo interface to export the corresponding Delphi's PTypeInfo
+
+SilLmEventList.pas
+    reversed the interface implementation order between IEventList and IEvents
+
+SilLmFieldAccess.pas
+    cleaned up the implementation of TWideStringFieldAccess.Compare method.
+    
+SilLmLinkedList.pas
+    reversed the interface implementation order between IPrivateLinkedList and ILinkedList
+    
+SilLmMemberList.pas    
+    changes implementation forced by changes in SilLiMemberList. 
+    changed the use of Str.CompareText for Text.Compare
+    
+SilLmPageStream.pas
+    reversed the interface implementation order between IMemoryStream and IBufferStream
+    
+SilLmParameters.pas    
+    reversed the interface implementation: IParameters moved to the last position.
+    changed the use of Str.CompareText for Text.Compare
+    
+SilLmPointerList.pas
+    implemented missing locking support!
+    
+SilLmStringCompare.pas
+    changed the use of Str.CompareText for Text.Compare
+
+SilLmStringList.pas
+    changed the use of Str.CompareText for Text.Compare
+    implemented missing locking support!
+    
+SilLmTextStream.pas
+    changes in implementation forced by changes in ITextStream. 
+    
+SilLmValueList.pas
+    changed the use of Str.CompareText for Text.Compare
+
+SilLmWOStream.pas
+    new unit: implementation of the new IWriteOnlyStream.
+    
+SilLtContainer.pas
+    added new overloaded functions to Sequence tool to simplify the implementation 
+        of Enumerate of containers.
+    added new constructors of String containers.
+    
+SilLtList.pas
+    added the function ReplaceLiterals moved from SilBtStr.
+    
+SilLtSerializer.pas
+    added new functions to the Serializer tool.
+    
+SilLtStream.pas
+    added new constructor for the IWriteOnlyStream.
+    
+SilLtTrace.pas
+    added overloads of several function with a Caller: TClass parameter.
+    replaced empty string '' with a named constant.
+
+SilOiFile.pas
+    interface IDirectoryReader: added method ReadAll.
+    
+SilOjError.pas
+    fixed: raising an exception when there was no error.
+    
+SilOjFile.pas
+    corrected parameter name.
+    added some log handling functions.
+    changed GetFileName and GetFileExt.
+    
+SilOjGuid.pas
+    added new IsEqual which checks the presence of a GUID in an open-array specified list.
+      
+SilOjProcess.pas
+    changed the use of Str.ReplaceLiterals to ListTool.ReplaceLiterals.
+    
+SilOjSocket.pas
+    changed the use of Str.CompareText for Text.Compare
+
+SilOjWStr.pas
+    implemented several missing functions.
+    
+SilOkDirectoryReader.pas
+    interface IDirectoryReader: added method ReadAll.
+    
+SilOkFileInfo.pas
+    changed the use of Str.CompareText for Text.Compare
+
+SilOkSocket.pas
+    changed order of interfaces in implementation list.
+    fixed read & write hungup in the event of an error.
+       
+SilOtLocked.pas
+    modified Increment and Decrement to return pre-modification values.
+    
+SilOfProcess.pas
+    fixed the use of the PSAPI through a new interface unit.
+    
+SilOmRegistry.pas
+    changed the use of Str.CompareText for Text.IsEqual
+    
+SilOmSocket.pas    
+    changed the use of Str.CompareText for Text.IsEqual
+    
+SilOmThread.pas
+    fixed some thread finalization issues.
+    
+SilOtEnvironment.pas
+    changed the use of Str.CompareText for Text.Compare
+    
+SilLfDelphiInvoke.pas, SilLkInvokeParam.pas, SilLmInvokeParam.pas,
+SilLtInvokeParam.pas
+    fixed the implementation of the interface invocator.
+    
+SilLmDelphiTypeInfo.pas    
+    changed the ITypeInfo interface to export the corresponding Delphi's PTypeInfo
+
+SilLayer.pas
+    moved all the tools to unit SilStLayer
+    generated new units:
+        SilScLayer.pas
+        
+SilSfEvalParserHelpers.pas
+    changed the use of Str.CompareText for Text.Compare
+    
+XML
+    changes in the interface IXmlNodes and others.
+    added new merge method to support merging two differents XmlTrees
+
+Layers: 
+    the threads now are named as they are spawned.
+    Protocol: changed IsValidMessage and ComparePacket to receive de command.
+
+Coders:
+    fixed the implementation of the Base64 coder/decoder that were wrong.
+    
+
+misc:
+    implemented new LeakChecker object.
+    
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+version developing-1.5.9-3 @ 2005-03-09 by leus,marianop
++ Library
+  - in SilLkList.pas
+    o FIX: removed SilClasses from the uses list.
+    
++ OS Abstraction Layer (Linux port)
+  - in SilOcTypes.pas
+    o FIX: The constants S_OK and S_FALSE we're declared incorrectly.
+  - in all the linux SilO?xxxx units:
+    o ADD: marked the body of method that there are not implemented
+      yet as "not-implemented" by raising an exception.
+
+  - in SilOtGuid.pas
+    o FIX: added the correct implementation of Sil.Guid.*
+
++ XML Parser
+  - in SilSmXml.pas
+    o FIX: corrections in how the Tag kind is calculated and initialized.
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+version developing-1.5.9-2 @ 2005-02-19 by leus,marianop
+
++ base tools
+  - in Sil.Str (SilBtStr.pas)
+    o CHANGE: modified Str.WildCard to receive a list of patterns instead of
+      a just one. It now receives one more parameter to specify the separator
+      used in the list of patterns.
+
++ Library
+  - in Sil.pas
+    o FIX: corrected the version number.
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+version developing-1.5.9-1 @ 2005-02-07 by leus,marianop
+
++ base tools
+  - in Sil.Str (SilBtStr.pas)
+    o ADD: new function New which allocates a new PChar on the Heap and
+    copies into it the string passes by parameter.
+    o FIX: there were some typo in the routine Str.Copy.
+    
++ Library
+  - in Sil.pas
+    o REMOVE: we're removed the access to Sil.Xml.* from within Sil.pas
+      and moved it to SilTool.pas. The reason for this is to prevent
+      some code bloating that was caused by the XML parser with the only
+      inclusion of Sil.pas in the uses. In this way, we're eliminated some
+      unwanted initialization sections from executing code with the only
+      inclusion of Sil.
+    o REMOVE: we're removed all the references to parts that already have been
+      moved to the SilTool.
+    o PUBLISHED: added a publication of the PStringData type used by the
+      StringsContainer.
+
+  - in SilLfParameters.pas
+    o CHANGE: renamed the only version of function Param which takes a name as
+    argument and initializes a RParameter with an Unassigned variant by
+    several versions of it: ParamUnassigned, ParamNull and ParamEmpty.
+
+  - in Sil.List.Params (SilLtList.pas)
+    o ADD: two new methods (Sil.List.Params.Null & Sil.List.Params.Empty) for 
+      creating empty parameters. 
+
+  - in TSilInterfacedObject (SilLkInterfaced.pas)
+    o ADD: added the implementation of the IConnections interface wich allows
+      delegation of event firing to external class code.
+    o CHANGE: the implementation of methods was reordered to match the class
+      declaration.
+
+  - in SilLkPacket.pas & SilLtStream.pas
+    o CHANGE: the used unit SilSmPageStream was renamed to SilLmPageStream.
+
+  - renamed tool/SilSmPageStream.pas to lib/SilLmPageStream.pas
+
+  - in Sil.Tk (SilLtTool.pas)
+    o REMOVE: the constructor for TextReader was eliminated from the Tk tool.
+      It was moved to the SilTool.Sv tool.
+
+
++ Trace & Log tool
+  - SilLmTrace.pas
+    o REMOVE: eliminated de use of SilClasses.pas from the implementation's
+      uses clause.
+
++ framework classes
+  - in TSilQueye (SilLkQueue.pas)
+    o CHANGE: replaced all the configuration data members by one data member
+      which is a instance of a record that holds all the values together.    
+    o CHANGE: the Cancel logic was reimplemented. Now it is possible to Cancel
+      the Queue and later restart it by calling Reset.
+
++ containers and support handlers
+  - in tool Sequence (SilLtContainer.pas)
+    o ADD: some helper routines (Start & Next) to ease the imeplementation of
+      container enumeration.
+
++ OS Abstraction Layer (Linux port)
+
+  - in SilOfWait.pas:
+    o ADD: Implementation for Sleep.
+
+  - in SilOmIpcCriticalSection.pas:
+    o ADD: implmentation of critical sections.
+
+  - in SilOmIpcEvent.pas:
+    o ADD: implmentation of manual reset events.
+    
+  - in SilOmIpcMutex.pas:
+    o ADD: implmentation of mutexes.
+
+  - in SilOmIpcSemaphore.pas:
+    o FIX: missing override of the (virtual abstract) DoClose method.
+
++ OS Abstraction Layer (Windows port)
+  
+  - in SilOvSocketInitializer.pas:
+    o FIX: the Release function now first checks that the local reference is
+      not nill before attempt releasing the global service.
+
++ Low Level Units
+
+  - The unit rtl/dp<xx>/SilLfStackUtils.pas was renamed and moved to
+    hw/x86/SilAfStackUtils.pas.
+
++ Layers
+  - in TSilLayerStream (SilSmLayerDeviceStream.pas)
+    o FIX: in TSilLayerStream.LayerActivate corrected to remain disabled if an
+      error is raised during activation.
+
++ Tools & Services
+
+  - ADDED: New unit SilXml to publish the types and interfaces needed to use
+    the XML parser.
+
+  - in TSilIniConfigNode (SilSmIniFileConfig.pas)
+    o FIX: implemented TSilIniConfigNode.Get whose implementation was missing.
+
++ VCL tool
+  - in SilVtComponents.pas
+    o ADD: added a SetProp routine to set any Boolean property with the same
+      semanthics of the Enable method (which sets the Enabled property only).
+    o CHANGE: reordered the method implementation section to match the order
+      from the class declaration.
+    
++ VCL components
+
+  - TSilFbStoredProc (in SilVmFirebirdStoredProc.pas)
+    o FIX: corrected implementation.
+
++ Miscelaneous changes
+  - REMOVE: The unit tool/Locale.pas was eliminated.
+  - CHANGE: in the tool/SilLayer.pas unis: now includes the SilXml.
+  - CHANGE: in the tool/SilSfLayerXml.pas unis: now includes the SilXml.
+  - CHANGE: in the tool/SilSiConfig.pas unis: now includes the SilXml.
+  - RENAME: created tool/SilScLog.pas from lib/SilScLog.pas
+  - RENAME: created tool/SilSeLog.pas from lib/SilSeLog.pas
+  - RENAME: created tool/SilSgLog.pas from lib/SilSgLog.pas
+  - RENAME: created tool/SilSiAbstractConnection.pas from lib/SilSiAbstractConnection.pas
+  - RENAME: created tool/SilSiCommunicationQueue.pas from lib/SilSiCommunicationQueue.pas
+  - RENAME: created tool/SilSiLog.pas from lib/SilSiLog.pas
+  - RENAME: created tool/SilSiMessageQueue.pas from lib/SilSiMessageQueue.pas 
+  - RENAME: created tool/SilSiPacketBuilder.pas from lib/SilSiPacketBuilder.pas 
+  - RENAME: created tool/SilSiPacketCompletion.pas from lib/SilSiPacketCompletion.pas 
+  - RENAME: created tool/SilSiProtocolBase.pas from lib/SilSiProtocolBase.pas 
+  - RENAME: created tool/SilSiProtocolPacket.pas from lib/SilSiProtocolPacket.pas 
+  - RENAME: created tool/SilSiResourcePool.pas from lib/SilSiResourcePool.pas 
+  - RENAME: created tool/SilSiSerialConnection.pas from lib/SilSiSerialConnection.pas 
+  - RENAME: created tool/SilSiSocketConnection.pas from lib/SilSiSocketConnection.pas 
+  - RENAME: created tool/SilSiXml.pas from lib/SilSiXml.pas 
+  - RENAME: created tool/SilSiXmlParser.pas from lib/SilSiXmlParser.pas 
+  - RENAME: created tool/SilSiXmlReader.pas from lib/SilSiXmlReader.pas 
+  - RENAME: created tool/SilSmAbstractConnection.pas from lib/SilSmAbstractConnection.pas 
+  - RENAME: created tool/SilSmConfiguration.pas from lib/SilSmConfiguration.pas 
+  - RENAME: created tool/SilSmLog.pas from lib/SilSmLog.pas 
+  - RENAME: created tool/SilSmMessageQueue.pas from lib/SilSmMessageQueue.pas 
+  - RENAME: created tool/SilSmPacketBuilder.pas from lib/SilSmPacketBuilder.pas 
+  - RENAME: created tool/SilSmPacketCompleter.pas from lib/SilSmPacketCompleter.pas 
+  - RENAME: created tool/SilSmPacketReader.pas from lib/SilSmPacketReader.pas 
+  - RENAME: created tool/SilSmProtocolBase.pas from lib/SilSmProtocolBase.pas 
+  - RENAME: created tool/SilSmProtocolPacket.pas from lib/SilSmProtocolPacket.pas 
+  - RENAME: created tool/SilSmResourcePool.pas from lib/SilSmResourcePool.pas 
+  - RENAME: created tool/SilSmSerialConnection.pas from lib/SilSmSerialConnection.pas 
+  - RENAME: created tool/SilSmSocketConnection.pas from lib/SilSmSocketConnection.pas 
+  - RENAME: created tool/SilSmTextCommandProtocol.pas from lib/SilSmTextCommandProtocol.pas 
+  - RENAME: created tool/SilSmTextLineCompleter.pas from lib/SilSmTextLineCompleter.pas 
+  - RENAME: created tool/SilSmTextReader.pas from lib/SilSmTextReader.pas 
+  - RENAME: created tool/SilSmThreadPool.pas from lib/SilSmThreadPool.pas 
+  - RENAME: created tool/SilSmXml.pas from lib/SilSmXml.pas 
+  - RENAME: created tool/SilSmXmlParser.pas from lib/SilSmXmlParser.pas 
+  - RENAME: created tool/SilSmXmlReader.pas from lib/SilSmXmlReader.pas 
+  - RENAME: created tool/SilStAbstractConnection.pas from lib/SilStAbstractConnection.pas 
+  - RENAME: created tool/SilStConfiguration.pas from lib/SilStConfiguration.pas
+  - RENAME: created tool/SilStEvent.pas from lib/SilStEvent.pas 
+  - RENAME: created tool/SilStLog.pas from lib/SilStLog.pas 
+  - RENAME: created tool/SilStMessageQueue.pas from lib/SilStMessageQueue.pas 
+  - RENAME: created tool/SilStResourcePool.pas from lib/SilStResourcePool.pas 
+  - RENAME: created tool/SilStSerialConnection.pas from lib/SilStSerialConnection.pas 
+  - RENAME: created tool/SilStSocketConnection.pas from lib/SilStSocketConnection.pas 
+  - RENAME: created tool/SilStThreadPool.pas from lib/SilStThreadPool.pas 
+  - RENAME: created tool/SilStTool.pas from lib/SilStTool.pas from 
+  - RENAME: created tool/SilStXml.pas from lib/SilStXml.pas from 
+  - ADD: created SilXml.pas
+  - RENAME: created lib/SilSmPageStream.pas from tool/SilSmPageStream.pas 
+  -  RENAME: SilURL.pas to SilUrl.pas
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+version stable-1.5.8 @ 2005-01-08 by leus,marianop
+
++ General
+  - in all the library
+    o ADD: added definitions and made changes for Delphi 2005 support.
+    o FIX: eliminated the keyword packed from being applied to objects.
+
++ Library
+  - in Sil.pas
+    o ADD: Published RAdoptRef.
+
++ base tools
+  - in SilBtDateTime.pas
+    o ADD: added DateTime.FromMinutes
+
+  - in SilBtTime.pas
+    o ADD: added new version of Time.FromStr with Default.
+
+  - in Sil.Str (SilBtStr.pas)
+    o ADD: new version of Str.Replace.
+    o CHANGE: added parameter AllowDuplicateSeparator to Str.Add.
+    
+  - in Sil.Vart (SilBtVart.pas)
+    o ADD: added ToConst and FromConst for converting to Delphi's TVarRec.
+
++ framework classes
+  - in   SilLiKey.pas, SilLkNamedKey.pas, SilLkNamedKeys.pas,
+        SilLkNamedItems.pas, SilLkNamedItem.pas
+    o ADD: added two properties (Path and Parent) to the INamedKey 
+      interface.
+
+  - in SilLiQueue.pas and SilLkQueue.pas
+    o CHANGE: added a parameter Clear to the Cancel function to indicate if
+      the elimination of the pending items is desired.
+
+  - in SilLkAggregation.pas
+    o CHANGE: implemented enumeration and made some fixes
+
+  - in SilLmStringList.pas
+    o FIX: Comparation of StringList items were wrong
+
+  - in SilLmTrace.pas
+    o FIX: corrected a mistype of a variable name.
+
+  - in SilLtList.pas
+    o ADD: added methods ToStrings and FromStrings to the ParameterList tool.
+
+  - in SilLtReference.pas
+    o ADD: added new versions of Get in class tool Reference.
+    o  ADD: new Adopt functions.
+
+  - in SilLtSerializer.pas
+    o FIX: Changed access permissions in the File Open in the method LoadFromFile
+
++ OS Abstraction Layer
+  - in SilOiModule.pas
+    o  CHANGE: Merged interfaces IModule and IModule2 into one version.
+
+  - in SilOjProcess.pas
+    o FIX: fixed a command line parsing error.
+
+  - in SilOjVersion.pas
+    o CHANGE: forced by changes in IModule. 
+  
+  - in SilOmDirectoryReader.pas
+    o CHANGE: new parameter allows specifying filters.
+  
+  - in linux/*.pas
+    o NEW: added implementation for some OS operations in the Linux platform
+  
+  - in SilOfFile.pas
+    o FIX: some fixed in path and extension handling
+
+  - in SilO?WntNetapi32.pas
+    o NEW: added support for sending WinPopup messages
+  
+  - in SilOmRegistry.pas, SilOmRegKey.pas, SilOmRegKeys.pas, SilOtRegistry.pas
+    o CHANGE: forced by the changed in the INamedKey interface.
+
+  - in SilOmWindow.pas
+    o NEW: added method Window.PurgeMessages
+    o FIX: fixed destroy of the window handle. Now calls PurgeMessages.
+      
++ Trace & Log tool
+
+  - in SilScLog.pas, SilSmLog.pas and SilStLog.pas
+    o ADDED: new parameters for spliting the log directory into subdirectories
+      by process and module.
+  
++ XML Parser
+  - in SilLiXml.pas
+    o NEW:  IXmlNodes.AddTag(const Value: IXmlTag): IXmlTag;
+    o NEW:  IXmlNodes.AddComment(const Value: IXmlComment): IXmlComment;
+    o NEW:  IXmlNode.Childs: IXmlNodes read GetChilds write SetChilds;
+    o NEW:  IXmlTag.Arguments: IXmlArguments read GetArguments write SetArguments;
+    o CHG:  IXmlArguments.Owner: IXmlTag;
+    o NEW:  IXmlNodes.GetNext(const Value: IXmlNode; out Node: IXmlNode): Boolean;
+    o NEW:  IXmlNodes.GetPrev(const Value: IXmlNode; out Node: IXmlNode): Boolean;
+    o NEW:  IXmlNodes.GetFirst(out Node: IXmlNode): Boolean;
+    o NEW:  IXmlNodes.GetLast(out Node: IXmlNode): Boolean;
+
++ Layers
+  - in SilSmLayerDeviceStream.pas 
+    o NEW:  TSilLayerStream.FIsBottomTerminal, the layer now can send a packet down or up
+
++ Mime Support
+  - in SilStMime.pas
+    o FIX:  SilStMime: month December was 'Dic' instead of 'Dec'
+
++ Miscelaneous Services
+  - in SilS?Icmp*.pas
+    o NEW: added support for using ICMP protocol, and in particular ECHO.
+
++ Delphi Packages
+  - in packages/dp70/*.dpk
+    o CHANGE: marked all the packages as 1.5.2 using the package library
+      version.
+
++ VCL components
+  - in: SilViControls.pas, SilVkControl.pas, SilVmControlProperty.pas, 
+        SilVmCustomButton.pas, SilVmFlowNode.pas, SilVmGradientPanel.pas   
+    o FIX: corrections in graphical controls
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+* History between 1.5.5 and 1.5.8 were not tracked. 
+* All changes made between Sept 2005 and Jan 2005 were 
+* aglomerated under version 1.5.8.
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+version stable-1.5.5 @ 2004-09-03 by leus,marianop
+
++ base tools
+  - in Sil.Typ ancestor (SilBtDataType.pas)
+    o ADD: added new function FromTypeInfo which takes a Delphi's PTypeInfo
+      parameter and gives a RDataType record with the corresponding DataType.
+
+  - in Sil.Vart (SilBtVart.pas)
+    o ADD: added two new functions IfEmpty.
+
+  - in SilBtTypeInfo.pas
+    o CHANGE: changes in ancestors of the Typ tool and in function names.
+
+  - in SilBtTypeTool.pas
+    o NEW: Tool that replaces the old Typ from SilBtTypeInfo ... this one only gets a PTypeData from a PTypeInfo.
+
++ framework classes
+  - in TMemoryStream (SilLmMemoryStream.pas)
+    o FIX: corrected an error that allowed the FPosition to become larger than
+      the stream size when resizing the memory stream.
+
+  - in TTraceStack (SilLmTrace.pas)
+    o FIX: removed a literal text string to allow localisation.
+
+  - in Serializer tool (SilLtSerializer.pas)
+    o FIX: SaveToStream weren't truncating the destination Stream after
+      writing the origin on it.
+
++ low level utils
+  - in SilAfStackUtils.pas
+    o FIX: missing unit header
+
++ Trace & Log tool
+
+  - in SilSgLog.pas
+    o CHANGE: changed the default of LogSplit from True to False
+
++ type conversion engine
+
+  - in IDataTypeList (SilLiDataType.pas) and in TSilDataTypeList (SilLmDataTypeList.pas)
+    o ADD: new overload of the Get functions which receives de PTypeInfo. 
+
+  - in TSilAbstractDataHandler (SilLkDataHandler.pas)
+    o FIX: TSilAbstractDataHandler.DoFromVariant was allocating a temporary
+      variable in the stack a weren't initializing or finalizing it.
+
+  - in TSilDataHandler (SilLmDataHandler.pas)
+    o TYPE: Corrected a typo. The name of a function argument was mispelled.
+  
++ XML Parser
+  - in IXmlNodes (SilLiXml.pas)
+    o ADD: function AddTag(const Name: String): IXmlTag;
+    o ADD: function AddComment: IXmlComment;
+
+  - in TXmlNodes (SilLmXml.pas)
+    o ADD: implementation of function AddTag(const Name: String): IXmlTag;
+    o ADD: implementation of function AddComment: IXmlComment;
+    o FIX: the node weren't marked modified upon change of an atribute value.
+    o FIX: some parsing corrections.
+    o FIX: TXmlTag.GetTag: bad creation of complete paths (ie: aaa/bbb/ccc)
+    
+  - in Xml tool (SilLtXml.pas)
+    o NEW: Sil.Xml.ToStr, Sil.Xml.FromStr
+
++ Internacionalization
+  - in Sil?d*.pas
+    o FIX: translation sp->en added
+
++ Delphi Packages
+  - siltoolx.dpk
+    o FIX: eliminated from the contains list all the units that were 
+      not root units (those that are named SilXXX without the two middle 
+      letters Yz as in SilYzXXX)
+
++ Layers
+  - in SilSmLayerProtocol.pas
+    o CHANGES: methods DoWait and DoCancelWaits changed visibility from
+      private to protected. 
+      
++ Services
+  - in SilSmDispatcher.pas
+    o FIX: Missing {$I Defines.inc} in the header
+
+  - in The Firebird API
+    o CHANGE: Work in progress. 
+    o ADD: Implemented information retrieval from functions in the services API. 
+    o FIX: implemented missing domains
+      
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+version stable-1.5.4 @ 2004-08-13 by leus,marianop
+
++ base tools
+  - in Sil.Str (SilBtStr.pas)
+    o ADD: new IfEmpty function. It takes a string and checks if it is Empty.
+      If it is, the returns the second argument, if not returns the string
+      itself.
+    o ADD: new overloaded Append versions for appending raw values of type
+      LargeInt and Word.
+
++ services
+  - in SilStTTool.pas
+    o ADD: Published in the Sv tool a new access to the Dispatcher service.
+
+  - in The Firebird API
+    o NEW: implemented access to the Firebird service API. In this version, the 
+      invocation of the backup utility is working.
+    o CHANGED: many more changes in implementation as work is in progress.
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+version stable-1.5.3 @ 2004-08-06 by leus,marianop
+
++ base tools
+  - in Sil.Str (SilBtStr.pas)
+    o ADD: added new overloaded version of DelimiterPos.
+
++ low level utils
+  - SilAfStackUtils.pas
+    o FIX: the unit was moved from rtl/dp60 to hw/x86 and changed its name
+      from SilLfStackUtils to SilAfStackUtils because it is implemented entirely
+      in assembler.
+
+  - SilLfDelphiInvoke.pas
+    o FIX: now uses the unit SilAfStackUtils which was renamed.
+    
++ type conversion engine
+  - in serveral files (mostly SilL?DataType*.pas, SilL?DataHandler.pas)
+    o FIX: corrections and work in progress.
+
++ Layers
+  - in SilSiLayer.pas and SilSmLayerProtocolCustomImate.pas
+    o CHANGE: the custom protocol class now implements and returns the new 
+      interface ILayerStatus.
+
++ services
+  - in The Firebird API
+    o CHANGED: changes in implementation as work is in progress.
+    
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+version stable-1.5.2-17 @ 2004-07-23 by leus,marianop
+
++ base tools
+  - in Sil.DateTime (SilBtDateTime.pas)
+    o CHANGE: Added two new overloaded versions of DateTime.FromStr.
+
++ containers and support handlers
+  - in TSilAbstractDataHandler (SilLkDataHandler.pas)
+    o FIX: DoInitialize and DoFinalize now check if FHandler <> nil before
+    calling to Handler's functions.
+
++ framework classes
+  - in TSilValueItems (SilLkValue.pas)
+    o CHANGE: forced by changes in Adoption mechanism.
+    o ADDED: new methods Clear and Null which calls upon the DataType handler
+    to clean up the value or to set it to a appropriate Null value.
+  
+  - in TSilGlobalListV2 (SilLmGlobalListV2.pas)
+    o  FIX: now the function Remove(Module: LongWord) iterates the module list
+    backwards to ensure proper deletion order.
+
++ OS Abstraction Layer
+  - in TSilWindowsThreadList (SilOmThreadList) 
+    o FIX: the hiden window that were used to implement the Synchronize calls
+    were being without letting purge their message queue. Now that were fixed
+    and the ThreadList now purges the windows message queue after closing 
+    window handle and before destroying the object wrapper holds it.
+
+  - SilOfThreadList.pas
+    o UPGRADE: The ThreadList global services was converted to make use of the
+    new V2 Global List instead of the old deprecated implementation. 
+
+  - SilOvThreadList.pas
+    o ADDED: The new ThreadList global service implementation
+
+  - SilOmSocket.pas
+    o UPGRADE: As with the ThreadList this one was upgraded in the same way. 
+      The SocketInitializer global services was converted to make use of the 
+      new V2 Global List instead of the old deprecated implementation. 
+
+  - SilOmSocketInitializer.pas & SilOvSocketInitializer.pas
+    o ADDED: The new SocketInitializer global service implementation
+
+
++ Shared Object Loader
+  - SilSfSharedManager.pas
+    o CHANGE: The calling module that is asking for a reference to the Manager
+      object now is specified by a Handle rather than by a Pointer to its memory address space.
+
+  - SilSharedObject.pas
+    o ADD: New unit which makes a library proyect to export all the entry
+      points needed by the SharedObject loader runtime.
+
+  - SilSharemem.pas
+    o CHANGE: By a change in the Get method of the global service list now it
+      is necessary to pass a handle to the module which were calling it
+      instead of a pointer to its memory address space.
+    
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+version stable-1.5.2-pre17 @ 2004-07-19 by leus,marianop
+
++ OS Abstraction Layer
+  - SilOkIpcMutex.pas
+    o FIX: the destructor TSilMutex.Destroy was missing!!
+      And with it, it was missing a call to DoRelease that was needed to free 
+      the mutex object lock.
+
+  - SilOtTimer.pas, SilOjTimer.pas
+    o FIX: function Create in Sil.Os.Timer which received an IHandle as second 
+      parameter was eliminated because of overload selection conflicts. 
+      It was never used but internally.
+
+  - SilOtFile.pas
+    o FIX: changed the Sil.Os.Filesystem.GetList implementation to honor the 
+      attributes specified as a filter in the funcion call.
+
++ Layers
+  - SilLayer.pas
+    o FIX: added, in tool Cmd, functions Read, Write and Receive, a new parameter, 
+      whose default is nil, of type IParameterList which will be passed to the rest 
+      of commands created during the transmission or reception chain.
+
+  - SilSiLayer.pas
+    o FIX: changed, in interface ILayerProtocol, the prototype of the SendPacket 
+      method. Now it receives the ParameterList to be passed to the command created 
+      for packet sending.
+
+  - SilSmLayerProtocol.pas
+    o FIX: changed, in interface ILayerProtocol, the prototype of the SendPacket method. 
+      Now it receives the ParameterList to be passed to the command created for packet sending.
+
+  - SilSmLayerProtocolImate.pas
+    o FIX: changed, in interface ILayerProtocol, the prototype of the SendPacket method. 
+      Now it receives the ParameterList to be passed to the command created for packet sending.
+
+
++ Services
+  - SilSmMimeCoder.pas
+    o FIX: changed the usage of CompareText, that were made deprecated, for the new TextCompare.
+
+  - SilStFormatterStack.pas
+    o CHANGE: the format of the timestamp used to print the time elapsed between Enters and 
+      Leaves was changed.
+
+  - SilSmFtpClient.pas
+    o FIXED: there was an error in the synchronization between the command protocol thread and the 
+      data transmission thread. There were missing a WaitFor termination at the closing of the data 
+      transmission channel.
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+version stable-1.5.2-16 @ 2004-07-16 by leus,marianop
+
++ base tools
+  - in Sil.Str (SilBtStr.pas)
+    o changed Sil.Str.Move prototype: now is a function that returns the
+      amount of data moved.
+
++ framework
+  - in SilLiTraits.pas, SilLfTraits.pas
+    o changed the adoption trait mechanism: now there is a record for every
+      reference to be adopted, and the Adopt functions defined in SilLfTrais
+      return a initialized copy of it. The users must declare its fields as
+      belonging to this record type, and after Adopt-ing the may refer to the
+      newly Instance field in the returned record.
+      
+      This solved some problems in destruction time which caused AV exceptions
+      because of the reference being already destroyed when the Adopt(@Ref,  nil) 
+      is being called.
+      
+    o Added a new overload of the Adopt function by which can be specified a
+      desired interface to ask for in the Value parameter. The Instance field
+      of the returned record points to a reference to this interface type.
+
+  - in several places ... mainly: SilLmContainerTypes.pas, SilLkValue.pas:
+    
+    o changed the field declaration to begin using the new Adopt record type.
+
++ type conversion engine
+
+  - in serveral files (mostly SilL?DataType*.pas, SilL?DataHandler.pas)
+    o  Implemented some From conversion primitives that was missing.
+    o  Changed the way in which the handlers uninitialize the referenced memory.
+    o  Corrected the Variable stubs that were calling the incorrect handler for type conversion.
+    o  Changed the place of some declaration to help readability.
+
++ services
+
+  - in The Firebird API
+
+    o now the API was made to work as before. The latest changes were about
+      the implementation of the type handlers for the firebird buffer types
+      handling. However, the Blob type implementation is still lacking.
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+version stable-1.5.2-15 @ 2004-07-08 by leus,marianop
+
++ framework
+
+  - in all the files related ... (SilL?Data*.pas, SilL?Value*.pas, etc ...)
+    o The work is almost done. As is needed by other parts of the library it
+    works now.
+
++ services
+
+  - in the Firebird API
+    o Now it works to an extent. Still missing some features like Blobs. We're
+    still working.
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+version stable-1.5.2-14 @ 2004-07-07 by leus,marianop
+
++ OS Abstraction Layer
+
+  - in Sil.Os.Environment.Expand (SilOtEnvironment.pas)
+    o  Changed the implementation of the Expand function to prevent an error
+    caused by the compiler picking wrong version of the called Str.Replace
+    function. The error was causing an exception EVariantConversion to raise.
+
++ framework
+
+  - in all the files related ... (SilL?Data*.pas, SilL?Value*.pas, etc ...)
+    o More work in progress on the Type conversion framework
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+version stable-1.5.2-13 @ 2004-07-02 by leus,marianop
+
++  base tools
+  - in Sil.Str (SilBtStr.pas)
+    o changed the name of Translate into the more descriptive: Replace.
+    o Translate was made deprecated.
+
+  - in several files, all those who have made use of it ... too many to count ...
+    o fixed the use of Str.Translate to the new Sil.Str.Replace
+
++ framework
+
+  - in all the files related ... (SilL?Data*.pas, SilL?Value*.pas, etc ...)
+    o work in progress on the Type conversion framework
+
++ layers 
+
+  - in SilLmWriter.pas
+    o corrected a misplaced + 1 which provoked writing one extra char to the
+      stream when the other end wasn't expecting it.
+
++ services
+
+  - in the Firebird API
+    o Work in progress: still doesn't compile, or rather: it maybe now compiles but it doesn't
+      work anymore.  OK: we're working on that.    
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+version stable-1.5.2-12 @ 2004-06-25 by leus,marianop
+
++ library
+  
+  - in Sil.pas
+    
+    o published the Delphi types TClass and TObject along with their pointers.
+    o published the new IValue<type> interfaces.  
+    o changed IDataType to IDataType1, so the  old things now are using the
+      IDataType1 version.
+    
+  - in SilBeDataType.pas
+    
+    o new TDataType: defined a new enumeration type which codes all the different possible
+      datatypes available. It's numericaly compatible with the VARTYPE
+      enumeration.
+    
+    o defined a record type which holds a value of TDataType and a set of
+      flags (set of TDataFlag) which are used to modify the meaning of the code.
+
+  - in SilBeTypes.pas
+
+    o added the redirections for TClass and TObject, and their pointers, to the Delphi dependant
+      unit.
+
+    o changed the definition of the TDateTimeStamp record: now is packed record.
+
++ base tools
+
+  - in Sil.DateTime (SilBtDateTime.pas)
+    
+    o added a new function Iif which selects between two TDateTime values
+      depending on the state of a boolean argument.  
+
+  - in Sil.Typ ancestor (SilBtDataType.pas)
+    
+    o changed the name of the Data function which was used to retrieve the
+      PTypeData from a PTypeInfo, now it is called TypeData.
+
+    o added a new subtool named Data to retrieve a tool which handles specific
+      methods and conversions for the new TDataType enumeration.
+
+  - in Sil.Vart (SilBtVart.pas)
+
+    o new conversion function to pass from a TVarType to the Sil's
+      TDataFieldType (deprecated now) enumeration.
+
++ framework classes
+
+  - new type conversion engine
+    o added several units to implement the new type conversion engine:
+      all the SilL?DataType.pas, all the SilL?DataHandler.pas, all the
+      SilL?DataType<type>.pas
+
+  - in SilLiFiler.pas: changes in the IWriter interface
+    o added a new version of the IWriter interface and renamed the old one to
+      IWriter1. The changed were needed to provide a new set of WriteString
+      and WriteWideString functions with an optional Size parameter.
+
+  - SilLiValue.pas: 
+    o changes in the IValue & IVariable interface: added some conversions that
+      we're forgotten.
+    o changed the 'Float' conversion of type Double to 'Double' to allow
+      introduction of Single and Extended conversions.
+    o published a redirection for all the IValue<type> and IVariable<type> interfaces.
+    o renamed IDataType to IDataType1 and introduced a new and simpler
+      IDataType.
+  
+  - in SilLiValue<type>.pas
+    o all this units are generated by expanding 'template' include files (see codecentral
+      ID=16429, thanks to Rossen Assenov for his excelent idea). Theirs
+      interfaces and types are published by common names so upon using them
+      one can reference _Type, _Value, _Default, and _Variable which expands
+      to <type> (Smallint, for example), IValue<type> (IValueSmallint), a
+      constant default for the type (in this case: a Smallint zero (0)), and
+      IVariable<type> (in the example: IVariableSmallint)
+
+    o changed the names of the 'template' units from SilLq to the new naming
+      scheme. Now there are a new primary letter assigned to templates: 'T'
+      and the scheme is: SilT?<content name><Interface or Implementation>,
+      where 'content name' is the purpose of the template, ie the entity which
+      is defined by expanding it, and 'Interface' or 'Implementation' are
+      defined to allow the same name of unit in the case in which the template
+      is for expanding in the unit interface part or in the implementation
+      part.
+
+  - in SilLmField.pas
+
+    o changed the usage of IDataType to IDataType1 to mantain compatibility,
+      and applied the changes required by the interface modification.
+
+    o several readibility improvements and code misplacing were corrected.
+
+  
+  - in SilLmWriter.pas, and SilLmTypeWriter.pas
+
+    o all the same changes obliged by the modifications in the IWriter
+      interface. 
+
+  - in SilLtField.pas
+    o added a new option in creation of Fields: now it can be created by
+    specifying an initial Variant which determines both the type of the field
+    and its default value.
+
+
+  - in Sil.Typ (SilLtTypeInfo.pas)
+    o added a global (one and only one instance of it is permitted) list of
+      type descriptors which can be accessed as Sil.Typ.List. Using this list
+      one can access to the global data type conversion facilities.
+      By accessing some type: 
+          
+          Sil.Typ.List.Integer
+
+      now is possible to convert to any other type, provide the conversion is
+      possible and makes sense:
+
+
+          Sil.Typ.List.Integer.ToAnsiString(<params here>), or
+          Sil.Typ.List.Integer.Convert(dtAnsiString, <params here>), and
+          Sil.Typ.List.Integer.CanConvert(dtAnsiString)
+
+      the last one enables us to ask for permitted conversion.
+
+      This conversion functions are pretty simple to use, but its interface
+      and function prototype are rather ugly (for a normal delphi programmer ;)
+      So, there is a provission to support more user friendly conversions on
+      top of this facility.
+      
++ containers and support handlers
+
+  o in TSilTypeHandler (SilLmContainerTypes.pas) 
+
+    - changed the way in which the Handler takes the reference to the
+      comparator: now it honors the Adoption trait marking and because of this
+      it holds the comparator as a pointer rather as an interface.
+    
+
++ OS Abstraction Layer
+
+  -  in IProcess (SilOiProcess.pas)
+    o added a property to ask the process about his exit code upon
+      termination.
+
+  - in Sil.Os.Thread (SilOjThread.pas)
+    o  added a function to create a new thread list (??)
+
+  - in TSilThreadList (SilOkThreadList.pas)
+    o the methods that were virtual abstract now are virtual only because of
+    the need for creation of additional base ThreadLists.
+
+  - in SilOkProcess.pas and SilOmProcess.pas
+    o changed the implementation to support the new ExitCode property.
+
+
+  - in TSilSocket (SilOsSocket.pas)
+    o correction of an implementation error: in the Bind's implementation
+      we're wrongly forcing the socket type and protocol to Stream and TCP.
+
+
++ General Services 
+
+  - in SilSmThreadPool.pas
+    
+    o corrected a new warning about the usage and assignation of the
+      Result variable, that were introduced by update1 of Delphi7.
+  
+
+  - in SilStConfiguration.pas
+
+    o the tool SilTools.Sv.Configuration now is implemented with a new class
+      called TSilConfigFile instead of the olf TConfiguration.
+  
+  - in SilSmHttpTags.pas
+    o corrected a reference to the Lexer instance that weren't protected
+      against the possibility of it being nil.
+
+  - in SilTool.Sv.Config (SilStConfig.pas) 
+
+    o added new configuration format to the Generic Configuration Reader Tool,
+      the new format is Inifile.
+
++ Layers
+  
+  - in SilLayer.Packer (SilLayer.pas)
+    o added a new HTTP packer to allow communications with layers usign http
+      protocol. (work in progress)
+
+  - in SilSiLayerConnection.pas
+    o added a new interface ILayerConnectionManager to allow hooking by the
+    user of the failure of connection attempts.
+
+  - in ILayerCommand and ILayerCommandList (SilSiLayer.pas)
+    o added a new Params property to the Command object which allows the
+      implementor to propagate values into calls to adyacent layers.
+
+  - in ILayerLinkList (SilSiLayer.pas)
+    o added a new overload version of Add which returns an interface to the
+      specified object as an out parameter, to allow for simpler
+      initialization sequences.
+  
+  - in ILayerProtocol (SilSiLayer.pas)
+    o added new overloaded versions of SendPacket which takes a Command object
+      intead of a bare IPacket, to allow propagation of the context and
+      command parameters in the replying direction of a slave interaction.
+
+  - in SilSmLayerProtocol.pas  
+    o implemented the new version of SendPacket.
+  
+  - in SilSmLayerConnection.pas
+    o some corrections in the connection loss detection logic.
+    o added the usage of the new ILayerConnectionManager interface to emit the
+      notifications.
+
+  - in SilSmLayerConnectionServer.pas
+    o corrected the implementation and added new features.
+
+  - in SilSmLayerDeviceSocketDatagaram.pas
+    o eliminated the use of the WriteLock that were not needed anymore.
+    o corrected an error which caused the Socket to be unbinded when the
+      Receive feature were not needed and thus disabled.
+ 
+
++ Components
+
+  - in SilVmCustomButton.pas
+    o missing inherited call in overriden MouseDown event routine which
+      prevented the firing of normal OnMouseDown events.
+  
++ Known problems
+
+  - the SilFirebird API doesn't compile right now! It is because of the
+    changes in the IValue a IVariable interfaces. We're working on that and
+    more sooner than later we'll have an update to fix these.
+    The new implementation we'll use the very new type conversion facility and
+    the new generic Value and Variable base classes.
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+version 1.5.2-11 @ 2004-05-13 by leus,marianop
+
+
++ OS Abstraction Layer
+  
+  - new feature in Sil.Os.Computer.Local:
+    o added support for Shutdown and Reboot.
+
+  - in Sil.Os.Filesystem (SilOjFile.pas)
+    o added an overloaded Delete routine to delete files and directories recursively.
+  
+  - in Sil.Os.Registry (SilOjRegistry.pas)
+    o also added Delete routines to recursively remove entries in the
+      registry.
+
++ services
+
+  - in SilStLogger.pas
+    o corrected an old change that prevented the log manager to read the
+      configuration from registry properly.
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+version 1.5.2-10 @ 2004-05-13 by leus,marianop
+
++ base tools
+
+  - in Sil.Ref (SilLtReference.pas)
+
+    o added a function Weak which receives an IUnknown of any object and
+      generates a new interface of without adding it a reference. 
+  
+  - in SilBeTypes.pas
+
+    o added an enumerated type whose components are the parts of a date.
+  
+  - in Sil.pas
+
+    o published constants which represents the date and time parts.
+
+  - in Sil.DateTime (SilBtDateTime.pas)
+
+    o added a new version of de Inc method which takes the new enumerated type
+      as an argument.
+
++ framework classes
+  
+  - in Sil.List.Params (SilLtList.pas)
+    o added functions Pack and Unpack to serialize and deserialize IParameters and
+      IParameterList from an IPacket.
+
+  - in SilLmField.pas
+    o correction in the calculation of the default type size.
+
++ services
+  - in SilSiLog.pas
+    o published the parameters of the log service as a property.
+
+  - in SilSmMimeCoder.pas
+    o corrections in the implementation of the Base64 decode line.
+
+  - in SilSiConfig.pas
+
+    o changes in the generic configuration service tool to allow specification
+      of the default creation behaviour.
+
+
++ layers
+  
+  - in ILayerProtocol (SilSiLayer.pas)
+    o changed the WaitPacket method to receive an additional parameter with
+      the original packet for which we're to wait a reply.
+  
+  - in ILayerWaitPacket (SilSiLayer.pas)
+    o eliminated Test function which was not used.
+    o added a Request property to access the original packet.
+
+  - in SilSmLayerProtocol.pas
+    o changed the implementation of the WaitPacket accordingly.
+    o corrected some missing references to the Command context were needed.
+    o changed the ComparePacket logic to check for same id of request in case
+      of an error reply.
+
+  - in SilSmLayerDeviceSocketServer.pas
+    o some changed that weren't needed anymore were undo.
+
+  - in SilSiLayerProtocolBlind.pas
+    o added to the methods of the IBlindProtocol interface the parameter
+      context.
+
+  - in SilSiLayerProtocolEblis.pas
+    o added to the methods of the IEblisProtocol interface the parameter
+      context.
+
+  - in SilSmLayerDeviceSocketDatagram.pas
+    o changed the implementation so now doesn't require two socket objects.
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+version 1.5.2-09 @ 2004-04-23 by leus,marianop
+
++ base tools
+
+  - in Sil.GUID (SilOjGuid.pas and SilOtGuid.pas)
+
+    o added a new function Index which takes a GUID value and an array of
+      GUIDs  and returns the index of the first GUID in the array or -1 if not
+      found.
+
+  - in Sil.Ref (SilLtReference.pas)
+
+    o added a function (MainInterface) which returns the main IUnknown of an
+      aggregated object.
+
+    o added a function (Extend) that when is called on IExtensible returns the
+      IAggregation which is needed to add new classes to the aggregation.
+
+  - in Sil.DateTime (SilBtDateTime.pas)
+    o changed DateTime.FromStr: added an argument to specify the pivoting Year
+      to use when the string came in two digit year format.
+
++ framework classes
+
+  - in TSilAggregation (SilLkAggregation.pas)
+    o corrected an error in the handling of the IsPublished parameter.
+    
+  - in TSilInterfacedObject (SilLkInterfaced.pas)
+    o eliminated a spurious method called GetRef.
+
+  - in TTypeStreamReader and TTypeStreamWriter
+    o minor corrections in the handling of Widestring values.
+
+  - in Sil.pas
+    o published the Delphi's type info encapsulation.
+    o published a new tool for accessing the new typeinfo interfaces.
+    
+  - in SilLkObject.pas
+    o changes in TSilObject: some interfaces implemented by TSilObject were
+      made exposed to descendants by means of property accesors functions
+      whose name is the same as the interface with <Get> prepended. 
+      Examples: ILockingSet, ISynchronizable, IExtensible.
+
+
++ Adoption Traits
+
+  - in SilLfTraits.pas
+
+    o new function Adopt which takes a field reference and a interface value
+      and applies the adoption traits rules to them asigning a new value to 
+      the reference depending on the trait's presence.
+
++ IValue and IVariable
+
+  - changes in SilLiValue.pas
+
+    o the IValue and IVariable interface changes to reflect a new style in
+      type accessing properties. 
+      Before the interface offered a series of properties which returned the
+      value  itself cast to the appropriate type.
+      Now, it offers the same properties but these in turn returns am
+      specific interface for every different type which has properties itself
+      to access the value as needed.
+    
+  - added new units SilLiValue<Type> 
+    o these units are implemented by the template expansion technique learned
+      from an article on Borland codecentral (ID=16429) by Rossen Assenov.
+
+  - changed the default TSilField implementation to the new IValue and
+    IVariable layout.
+    
++ Container support types
+  
+  - changes in type handler implementation:
+
+    o the base TSilTypeHandler was splitted in two kinds of handler: one for
+      static types and other for dynamic types requiring initialization and
+      finalization semantics.
+
+    o a Hook to the Type Handler was added to allow for notification of
+      initializations and finalizations occurred.
+
+  - all the support classes now are marked with the IAdoptionTrait.
+
+  - new TypeHandler (TSilCompositeHandler):
+    
+    o added a new type handler that composes any number of others handlers in
+      one, which serves to handle record types which contains variant parts.
+
+    o added the required construction functions in SilContainer.Handler.
+
+  - in SilLiContainer.pas 
+    o change in IContainerTypes: we're exposed the ISynchronizable interface as a property of name
+      Synchronized. This interface has only one function: Lock with takes a
+      lock from the object thus preventing concurrent access.
+
+  - in SilLiContainerStrings.pas
+
+    o correction: the RStringData private record were made packed to ensure
+      proper memory alignment for the composite type handler.
+
+  - in SilLiContainerBase.pas
+    o change in IBaseContainer: we're exposed the ILockingSet interface as a property of name Locking.
+      This property allows any user of the container to make the instance lock
+      capable, by setting the proper properties in this interface.
+
+    o TSilBaseContainerType: the base container class type were made descendant of the
+      TSilAggregableObject and, thus, the constructor accordingly updated to
+      allow specification of an outer controller.
+
+  - in SilLmContainerEnumerator.pas
+    o changed constructor to allow specification of lock behaviour.
+    o changed the Detach implementation to correct the destruction and unlock sequence.
+
+  - in SilLmContainerInterfaces.pas
+    o some corrections of the implementations.
+    
+  - in SilLmContainerStrings.pas
+    o the TSilStringsHandler now were made a composition of a String handler
+      with the one specified as data in the construction of the container.
+
+  - in SilLmContainerTypes.pas
+    o some corrections were made on the TSilCompositeHandler to correctly
+      handle some special cases that were presented.
+
+
++ OS Abstraction Layer:
+
+  - in SilOkSocket.pas
+    o changed the DoAccept abstract method to return the address from the
+      new accepted socket in addition to the handle.
+
+  
++ layers
+  
+  -  in SilSmLayerDeviceSocketDatagram.pas
+    o added a new Socket Datagram Layer which handles UDP connections.
+
+  - in several units of class implementation
+    o changes in the handling of the command object upon receiving an interrogation which prevented 
+      the context from reaching to the last layer's Write method, and then, as the context is used 
+      in UDP to hold the address from which the inquiry come and that address then is needed in the 
+      reply to send the answer to the correct client.
+
+  - new ILayerConnection
+
+    o added a new helper class for stream connections which facilitates the
+      use of the layers in asyncronous mode receiving notification as events and 
+      implementing features like: automatic reconnection, connection retries,
+      etc.
+
+  - added a list which traces history of commands being created by different
+    layers that is propagated with the command form layer to layer.
+
+  - overloaded some creation functions to return the object being created as
+    out parameter as well as a return value.
+
+  - in ILayerCommand:
+    o the Context property has been made setable.
+
+  - in SilSmLayerProtocolCustomImate.pas
+    o added an accessor function which can be used to implement a property in
+      the descendants to obtain the ILayerProtocol.  
+
++ new features
+
+  - added a new list: MemberList
+
+    o Sil.List.MemberList: this list is like a parameter list but instead of
+      using variants to store values it uses field pointers provided by the
+      user and identified by name and typeinfo. So, when a parameter is setted, 
+      the real field's content is assigned.
+
+    o added a new tool to the List tool which is invoked by Sil.List.Members
+      that provides a series of helper function in dealing with MemberList
+      usage.
+
+  - in SilTool.Sv added and published the new generic configuration
+
+ 
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+version 1.5.2-08 @ 2004-03-26 by leus,marianop
+
++  Base Tools:
+
+  - correction in Sil.Int (SilBtInt.pas)
+
+    o Int.ToHex: added a guard to prevent the execution of the conversion in 
+      the a weird case in which a string constant appeared to be zero length.
+
+  - change in Sil.Str (SilBtStr.pas)
+    o the functions IsEmpty and NotEmpty now take an optional boolean argument 
+      to indicate to trim the string before doing the test.
+
+  - addition in Sil.Vart (SilBtVart.pas)
+    o added a new IsNull function which takes a Variant and a Default and
+      returns whichever is not null.
+
+  - in Sil.Ref (SilLtReference.pas)
+  
+    o added a new tool function called Result which can be used to optimize
+    the retunrning of interface references as Result of functions by taking
+    advantage of a Delphi quirk: it doesn't cleans up the references of Result
+    variables upon entering to it, so, in the case of a function returning always a
+    reference to the same object, as the case of a property getter for
+    example, it can check first if the Result is not nil and the value of the
+    pointer is the same as the one it must return, then an interface copy can
+    be avoided, and because of this were avoiding the calls to IUnknown's Release
+    and AddRef functions.
+
+  
++ Containers:
+  - in SilLkContainerBase.pas
+    o added Lockable support to the base container by overriding the default
+      mechanism from TSilObject and redeclaring SetIsLockable to create a
+      critical section.
+
+  - in SilLmContainerList.pas and SilLmContainerVector.pas
+    o added locking support that only works if in the constructor was provided
+      a flag indicating that lock support must be enabled.
+
+  - in SilLmContainerEnumerator.pas
+    o speeded up the code by removing the inheritance from TAbstractEnumerator
+      and reimplementing all the needed interfaces locally.
+
+  - in SilLmContainerInterfaces.pas
+    o added a simil of Sil.List.InterfaceList but implemented using
+      Containers instead of the old TSilList.
+
+  - in SilLmContainerSequence.pas
+    o added a lite implementation of TSimpleSequence to test performance.
+
+  - in SilLmContainerTypes.pas
+    o TSilInterfaceComparator: defined a new reusable type comparator specialized in comparing
+      interfaces.
+
+  - in SilLtContainer:
+    o published the new InterfaceList version which is compatible with
+      Sil.List.InterfaceList() and can be accessed as:
+      SilContainer.Vector.Interfaces() or SilContainer.List.Interfaces().
+
+  - in SilLtContainer:
+    o Sequence.Create(Container, Kind, Start, Delta) now returns the lite
+      SimpleSequence.
+
++ List support:
+  
+  - in Sil.List (SilLtList.pas)
+    
+    o added a tool function ParamGet to retrieve a param value form a
+      IParameters specifying a default value to return in case the parameter
+      is not there.
+
++ OS Abstraction Layer:
+  
+  - in Sil.Os.Computer.Local (SilOiComputer.pas, SilOkComputer.pas and SilOmComputer.pas)
+    o added a new function which gets the UserName in different possible
+      formats.
+
+  - in TSilFileInfoList (SilOkFileInfo.pas)
+  
+    o the function which splits the path from the file name now checks both
+      kinds of path separator: '/' and '\'.
+
+  - in TSilThread (SilOkThread.pas)
+    
+    o corrected some bad behaviour with the adoption traits's mixing with
+      threads. code now looks ugly, but will be corrected as soon as a better
+      solution is found.
+
+  - in the NETAPI 32 encapsulation
+
+    o several noncritical changes.
+
++ layers:
+  
+  - the Probase compatibility implementation layer is published.
+
+  - all the layer implementations: 
+    o added a IsBroken parameter in the Deactivate method of the ILayerControl
+      and ILayerLinkControl which is used to indicate when a deactivation is 
+      provoked by a los connection event.
+
+  - changed the Stream layer to detect connection loss and signal it.
+  - changed the layer link list to propagate the new IsBroken parameter.
+
+  - the SilFileExchangeProtocol was updated to allow specifying filters in 
+    the call to ReadDirectory.
+
+
++ Components:
+
+  - in SilVm3dShape.pas
+    o some changes in behaviour.
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+version 1.5.2-07 @ 2004-03-04 by leus,marianop
+
++ corrections:
+  - in TSilObject:
+    o changed the way that the AddRef and Release was implemented. Now we're
+      calling the windows Interlocked routines because these were faster than
+      our assembler counterparts. That's because de LOCK prefix. We're no way
+      to know about multiprocessor machines and adapt to this as windows does.
+      In single processor machines there is no need of the LOCK prefix but
+      when there is more than one it is critical to ensure atomic operation.
+      We discover that windows adapts its dlls and in the case that you are in 
+      a single processor machine, the interlocked functions doesn't have this
+      prefix and because of that, they run faster.
+
++ changes:
+  - in Sil.Os.Locked:
+    o eliminated some variations of the interlocked functions.
+
+  - in SilOkHandled:
+    o added a Locked parameter to its constructor Create to propagate the
+    indication to create a critical section to the TSilInterfacedObject
+    constructor.
+
++ added:
+  - in Sil.Os.Computer:
+    o added a function which returns the name of logged on user.
+
+  - in SilOkHandled:
+    o added a protected property HasHandle which returns False in the case
+      that the object Handle is invalid (ie: is nil).
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+version 1.5.2-06 @ 2004-02-27 by leus,marianop
+
++ new features:
+  - Traits expressed by means of implementing an empty interface:
+    o Adoption: now an object which on of its interfaces is passed to a
+      container can express their preference about being 'adopted' by the
+      host. This allows and object to selectively determine if a reference
+      over it (an addref) must be taken or not.
+
+  - In the windows NETAPI encapsulation (windows NT only: SilOsWntNetapi32):
+    o added the support for getting the near DC in the network. In fact: published
+    NetDsGetName and all the support constants needed.
+
++ additions:
+  -  Sil.pas: 
+    o  Published NamedPipes interfaces and support types.
+
+  - Sil.Os.Filesystem:
+    o changed ReadDirectory to support specifying attributes to include and
+      exclude from operation.
+    o idem to GetList.
+    
++ changes:
+  - now Sil.Os.Thread.Spawn now honors the adoption trait's signaling in their
+    IRunnable parameter, which means that if an objects implements
+    IAdoptionTrait the thread will AddRef over it, and if not only a Weak
+    reference (pointer) is maintained.
+  
+  - the SilFileExchangeProtocol was adapted to the new IDirectoryReader
+    behaviour.
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+version 1.5.2-05 @ 2004-02-17 by leus,marianop
+
++ Some additions in Sil.DateTime and Sil.Date tools
+  -  added in Date  tool:
+    o  Swap:  exchanges to variables of type TDate taken as var parameters.
+  -  added in DateTime tool:
+    o  Swap:  exchanges to variables of type TDate taken as var parameters.
+    o  ToMinutes: returns a LongWord which is the TDateTime scaled to minutes.
+    o MinutesBetween: returns how many minutes are between two TDateTime. 
+    o  MinutesToNow: same as above, but Now is taken as one of the arguments.
+    o HourOf: returns the Hour part of a TDateTime.
+
++ Additions to Sil.Os.Module
+  - added in Module tool:
+    o Get(String): new method to load a module searching for it by its name.
+
++ Corrections
+  - Sil.Os.Task:
+    o corrected "access violation" in Destroy of TSilTask (SilOkTask) caused
+      by the presence of interface temporaries in a place where objects are
+      beeing destroyed. The DoClearConnections protected procedure was added
+      to solve that.
+
++  Minor implementation corrections
+  - error in SystemTime to DateTime conversion routines:
+    o Sil.Os.Timezone.LocalToGlobal's implementation was wrong.
+
++ Deleted some unused and deprecated files:
+  - lib/os/linux: SilOcNetAPI.pas
+  - lib/os/linux: SilOeNetAPI.pas
+  - lib/os/linux: SilOhNetAPI.pas
+  - lib/os/linux: SilOpNetAPI.pas
+  - lib/os/win: SilOcNetAPI.pas
+  - lib/os/win: SilOeNetAPI.pas
+  
++ New implemented features: 
+  - In the windows NETAPI encapsulation (windows NT only: SilOsWntNetapi32):
+    o added the declarations and support por creating, deleting and enumerating network
+      drives connections, ie: connect to shares specifying user and password.
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+version 1.5.2-04 @ 2004-02-16 by leus.
+
++ New demo directory structure:
+  - started from scratch new demos more documented and explained.
+  -  added a new project group that contains all the demos. (see ./programs/demos/demos.bpg)
+  -  added a group of demos of framework functionality: aggregation, extension, events & lockers.
+  -  added a demo of Sil.Str.Enumerate, Sil.Str.Token & similar tools.
+  -  added a demo of IParameterList.
+  -  added a demo of StringList, PointerList and Handlers.
+  -  added a demo of StringList event firing.
+  -  added a demo the comparison of various list's speed.
+  -  added a demo of IValueList.
+  -  added a demo of ILinkedList.
+  -  added a demo of the useof the (unpublished yet) Delphi Typeinfo interfaces.
+  -  added a demo of the container basic functions.
+  - added a demo of Global Service List
+
+  ... more demos coming soon so, keep in touch!
+
++ Changed file locations:
+  
+  - several docs that was in spanish now were moved to de doc/lc/sp folder.
+  - added a babelfish translation of our .DOCs links found in the borland newsgroups
+    Thanks to Paul Ericksen for the translations. 
+    We'll touching this docs to correct the errors and we'll post the updated 
+    versions in a few days.
+    For now, just the plain versions as HTML.
+
++ Corrections:
+  - in SilBtStr:
+    o Token: does not need to check for termination right before exit.
+    o TokenToArray: eliminated check to see if returned item was empty string.
+
+  -  in SilLfParameters:
+    o  changed some internal names to avoid overloads.
+    o  added several missing utilities.
+    o corrected the use of the symbolic names <DP60> for the use of <D60> 
+      which means all Delphi after and including Delphi6
+
+  - in SilLmContainerSequence.pas
+    o Now checks for invalid cursors and uses the default of the container.
+    o  Corrected the end of sequence test.
+
+  - Eliminated deprecated unit SilLmPointerArray.
+
+  - SilLtContainer.pas:
+    o changed Sequence.Create(Cursor, Cursor, Kind) 
+      for Sequence.Create(Container, Cursor, Cursor, Kind): 
+      now receives the container.
+        
+  -  in SilLtTool.pas:
+    o  changed Sil.List to publish a Params internal tool to replace Sil.List.Parameters.
+    o published in this new tool many utilities to handle IParameterList.
+    o now is possible to construct a IParameterList by specifying a parameter array. 
+
+  - SilLtReference.pas:    
+    o Ref.Free which receives a instance now checks for a nil argument before testing his ClassType.
+  
+  - SilLmInvokeParam.pas:
+    o this unit is yet experimental: added support to assign Integer parameters to check the demo functionality.      
+  
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+version 1.5.2-03 @ 2004-02-12 by leus.
+
++ ÚCorrected demos: TestListSpeed, TestBase & TestList in ./programs/demos/lib/base/containers/ subdirs 1, 2 & 3;
++ Deleted many unused local units in the same directories which were replaced by the library itself.
++ SilLkAggregation.pas:
+  - Corrected a bug in the implementation of the aggregate container. The code was using a container
+  of a record type, but in the insertion point, there was passing a single value.
+  So, one of the fields of the record was initialized with garbage.
+
++ SilLkObject.pas:
+  - Changed the return of the ILockingSet::GetIsLockable to a fixed result of False. It was done to speed up
+  the most common case of nonlockable objects returning False without the need to check for the
+  implementation of the ILockable interface. The ILockingSet::GetLockable still returns the interface is one
+  descendant provides it.
+  - Changed the implementation of the ISerializable::Lock. Before that it was returning nil for an object
+  that wasn't lockable. Now, it returns a stub implementation of ILock so that the code using it can
+  reliably assume that it can reference tha result of tha call to Locked without checking for the result.
+
++ SilLmConnectableExtension.pas:
+  - The Connectable Extension assumed that the aggregator object was passing himself to receive notifications of
+  connections made to it in the Param argument to the default constructor.
+  Now, it checks for the IConnectable hook in the Owner and the Controller if they are valid values.
+
++ SilLmContainerList.pas:
+  - A simple correction in the item validation routine: now it checks if the Item parameter if different
+  from HNull. In this case this is an important check because the HItem in the Linked List is a pointer
+  to a node and the code assumes tha if it is different from nil it was valid.
+  This change allows to call TSilBaseList.GetNext(var HItem) passing HNull as first value to begin the
+  enumeration.
+
+  - Eliminated the call to Locked to speed up enumerations. Now, it is only called once in the first invocation
+  befores accessing to the FFirst field.
+
++ SilLmContainerVector.pas:
+  - Corrected a faulty implementation in TSilBaseVector.Insert() of the movement of items that happens in
+  the case of an insertion in the middle of the container.
+
+  - Changes in TSilBaseVector.GetNext that allows to pass as first value HNull to begin the enumeration.
+  
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+version 1.5.2-02 @ 2004-02-03 by leus.
+
++ Added demo of TSilAggregationObject
++ Added demo of TSilExtensibleObject
++ Changed demo of Chat
++ Added Sil.Os.Thread demo (in ./projects/examples/threads) very similar to the one in Delphi's samples.
+
+* Changes in Firebird API
+
++ Sil.pas: several missing standard Range and Set types published
+  * SilBeTypes changes because of that
++ Sil.pas: added some new debug contants
+  * SilBcDebug changes because of that
++ Sil.pas: published ERROR_SUCCCESS and NULL_HANDLE_VALUE
+  * SilBeTypes changes
+
+* SilBtStr:
+  + Added: Trim version which supports specifying a set of chars to trim
+  + Added: default values to parameters of some functions
+  + Added: IgnoreCase to Pos and Translate
+
++ SilLiParameters, SilLmParameters
+  + Indexing support has been added
+
++ SilLkNamedKeys
+  + Added RaiseError in INamedKey.Get to control the exception raise mechanism. Default is true.
+
+* In several units
+  * case changed the word 'IPC' to 'Ipc' to allow compilation in case-sensitive environments: Linux.
+  * idem: 'Default.inc'
+
+* SilLmTrace
+  * Implemented the sending of text from Trace.Leave to signal return conditions.
+  * Added: the output of Enter/Leaves to the log is controlled by bits in the Debug flags.
+
+* Audio streamming device support changed.
+
+* SilOjProcess
+  * Minor correction in parameter parsing
+
+* Check for invalid handle now includes the constant NULL_HANDLE_VALUE
+
+* Some changes in Linux implementation units.
+
+* in SilStLogger:
+  * Support to specify in registr the bit flags by name.
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+version 1.5.2-01 @ 2004-02-03 by leus.
+
+*  Some corrections to permit compilation in D5
+  *  Path corrections in D5 packages
+  * Elimination of non-root units from requires clause
+  * Added some support to the MemMgr in D5
+  * published IInvokable in D5
+  * Added IFDEFs in some places
+  *  Added AddValue procedure in IDataRowsetFind in place of the overloaded Add version to prevent compiler problems in D5
+  * Added default value for Context parameter in implementation of SendPacket from interface ILayerProtocol
+  * Changed use of SendPacket to prevent passing <nil> as parameter
+  * Changed SilSmNotify to extract Recipients from IParameterList and assign it to a local variable before using it.
+  * SilBeTypes missing in uses on SilVmCustomPanel
+  * Themes is not available for Delphi < 6. added IFDEFs
+  * idem. for the ParentBackground property
+
+*  SilBtStr
+  * Str.Split didn't set the Result when matching doesn't occur
+
+* Some correction in container's demo programs
+
++ Sil.Os.Module changed to allow loading a module without executing code. This allow access to resources inside the loaded module.
++ Sil.Guid: added of an Iif implementation
+
+* Massive changes in the *beta* Firebird API encapsulation
+
+*  In SilStLogger:
+  * Configuration is read *always* now.
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+version 1.5.1 @ unknown by nobody.
+
+...
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+version 1.50:
+
+  11-nov-2001: leandro
+    He cambiado Sil.Os.Configuration por Cambio Sil.Os.Registry,
+    a causa de que ya ha quedado convertida al nuevo formato.
+
+  07-nov-2001: marianop
+    Nueva implementaciÛn de Sockets finalizada y testeada con exito.
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+version 1.43:
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+version 1.42:
+
+  13-sep-2001 marianop  bug corregido en el manejo de threads.
+    la llamada Sil.OS.Thread.Current fallaba en ciertos casos dentro de una dll.
+    se soluciono cambiando la threadvar por un lookup en la lista de threads.
+
+  30-ago-2001 leandro   Varios cambios en la nomenclatura y en la disposiciÛn de los manejadores de items ...
+
+    se cambiÛ:
+
+          ObjectPtr      a ObjectHandler,
+          InterfacePtr  a InterfaceHandler,
+          StringPtr      a StringHandler,
+          VoidPtr        a VoidHandler.
+
+    Ademas se introdujeron dos subtipos abstractos que permiten diferenciar si los items son del tipo puntero,
+    o si son datos estructurados. De el primero descienden los Void, Interface, Dynamic y Object. De el segundo
+    descienden los manejadores de String, Variant, y de todo los tipos Record ...
+
+    Este cambio provoca que a partir de esta version, en todas las lista que reciben punteros
+    (PointerList y StringList), haya que pasar el item por direcciÛn y no por valor. Esto se debe hacer asi
+    con todos los tipos excepto Punteros (void) y Objetos. El caso de las interfaces es la unica excepciÛn a
+    este caso: a pesar de ser punteros igual se deben pasar usando '@'.
+
+
+  30-ago-2001 leandro   Cambios en los nombres de las clases que implementan las listas ...
+
+    se cambiÛ:
+          TList         por TSilList,
+          TStringList   por TSilStringList,
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+version 1.41:
+
+  02-jul-2001 marianop  soporte para manejo de TGuidArray en class tool Sil.Guid
+  03-jul-2001 leandro   creamos la nueva tool (Sil.List) dedicada a las listas!! Las funciones para crear listas por ahora siguen presentes en la Sil.Tk tambien
+  03-jul-2001 leandro   Agregamos una lista de par·metros que se puede usar como contenedor de valores generico.
+  04-jul-2001 marianop  sockets: la espera con INFINITE en ISocket.Read o ISocket.Write, ahora la hace con Select
+  07-jul-2001 leandro   QuitÈ de todos los headers los keywords de versiones
+  11-jul-2001 leandro   CorrecciÛn de un error en el GetCurrent de TThread
+  12-jul-2001 marianop  compatibilidad con delphi 6 (SilOmThread, SilOtSocket, SilLmReadWriteLock)
+  13-jul-2001 marianop  correccion en manejo de memos en TDataRowset
+
+
+
+

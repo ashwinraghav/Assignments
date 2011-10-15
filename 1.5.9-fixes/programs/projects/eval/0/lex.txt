@@ -1,0 +1,63 @@
+
+ALPHA                 : [_a-zA-Z]
+DIGIT                 : [0-9]
+BIT                   : [01]
+OCT                   : [0-7]
+
+SQ                    : [']
+DQ                    : ["]
+
+
+HEXDIGIT              : digit | [a-fA-F]
+
+ALPHANUM              : alpha | digit
+IDENTIFIER            : alpha  alphanum*
+
+STRING                : sq ( [^sq] | sq sq )* sq |
+                        dq ( [^dq] | sq sq )* dq
+                        
+DIGITS                : digit+
+DECIMAL               : digit+ 'd'?
+SIGN                  : [+-]
+
+HEXA                  : ('$'|'0x') hexdigit+ | hexdigit+ 'h'
+BINARY                : bit+ 'b'
+OCTAL                 : '0' oct+ |  oct+ 'o'
+MANTISSA              : [.] digits
+
+FIXED                 : sign? digits mantissa?
+EXPONENT              : [eE] fixed
+FLOAT                 : fixed exponent?
+
+OP_LOR                : ||
+OP_LAND               : &&
+OP_OR                 : |
+OP_XOR                : ^
+OP_AND                : &
+OP_EQ                 : ==
+OP_NEQ                : !=
+OP_LESS               : <
+OP_GREATER            : >
+OP_LESSEQ             : <=
+OP_GREATEREQ          : >=
+OP_SHR                : >>
+OP_SHL                : <<
+PLUS                  : +
+MINUS                 : -
+MUL                   : *
+DIV                   : /
+MOD                   : %
+NEG                   : ~
+NOT                   : !
+INC                   : ++
+DEC                   : --
+
+ASSIGN-OP             : one of  ( =, *=, /=, %=, +=, -=, >>=, <<=, &=, ^=, |= )
+ADD-OP                : one of  (PLUS, MINUS)
+MULT-OP               : one of  (MUL, DIV, MOD)
+EQ-OP                 : one of  (OP_EQ, OP_NEQ)
+REL-OP                : one of  (OP_LESS, OP_GREATER, OP_LESSEQ, OP_GREATEREQ)
+SH-OP                 : one of  (OP_SHR, SHL-OP)
+INCR-OP               : one of  (INC, DEC)
+UNARY-OP              : one of  (*, &, PLUS, MINUS, NOT, NEG)
+

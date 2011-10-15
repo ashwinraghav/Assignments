@@ -1,0 +1,30 @@
+object FormRowset: TFormRowset
+  Left = 245
+  Top = 272
+  Width = 640
+  Height = 308
+  ActiveControl = lvList
+  Color = clBtnFace
+  Font.Charset = ANSI_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = [fsBold]
+  OldCreateOrder = False
+  OnClose = FormClose
+  OnKeyDown = FormKeyDown
+  PixelsPerInch = 96
+  TextHeight = 13
+  object lvList: TListView
+    Left = 0
+    Top = 0
+    Width = 632
+    Height = 281
+    Align = alClient
+    Columns = <>
+    ReadOnly = True
+    RowSelect = True
+    TabOrder = 0
+    ViewStyle = vsReport
+  end
+end

@@ -1,0 +1,136 @@
+expression:
+  assignment          expression_list
+
+expression_list:
+  COMMA               assignment          expression_list
+  @                                                                  
+
+assignment:
+  logical_or          assignment_list
+
+assignment_list:
+  QUESTION            expression   COLON   logical_or          assignment_list
+  ASSIGN_OP           logical_or          assignment_list
+  @
+
+logical_or:
+  logical_and         logical_or_list
+
+logical_or_list:
+  LOR                 logical_or
+  @
+
+logical_and:
+  inclusive_or        logical_and_list
+
+logical_and_list:
+  LAND                logical_and
+  @
+
+inclusive_or:
+  exclusive_or        inclusive_or_list
+
+inclusive_or_list:
+  OR                  inclusive_or
+  @
+
+exclusive_or:
+  and                 exclusive_or_list
+
+exclusive_or_list:
+  XOR                 exclusive_or
+  @
+
+and:
+  equality            and_list
+
+and_list:
+  AND                 and
+
+equality:
+  relational          equality_list
+
+equality_list:
+  EQ                  equality
+
+relational:
+  shift               relational_list
+
+relational_list:
+  REL                 relational
+
+shift:
+  addition            shift_list
+
+shift_list:
+  SHIFT               shift
+
+addition:
+  multiplication      addition_list
+
+addition_list:
+  SUM                 addition
+
+multiplication:
+  unary               multiplication_list
+
+multiplication_list:
+  MULT                unary               multiplication_list
+  @
+
+unary:
+  INCR                multiplication
+  UNARY               multiplication
+  postfix
+
+postfix
+  :   primary
+      { postfix_list.htipo = primary.tipo  }
+      postfix_list
+
+postfix_list
+  :   LPAREN
+      arguments
+      RPAREN
+      postfix_list    { postfix_list.tipo = arguments.tipo }
+
+  |   LBRACKET
+      expression
+      RBRACKET
+      postfix_list
+      
+  |   INCR
+      postfix_list
+      
+  |   ARROW
+      IDENTIFIER
+      postfix_list
+      
+  |   DOT
+      IDENTIFIER
+      postfix_list
+  @
+
+arguments
+  :   argument
+      argument_list        { arguments.tipo := (argument_list.tipo x argument.tipo) }
+
+argument_list
+  :   COMMA
+      argument
+      argument_list         { argument_list.tipo := (argument_list.tipo x argument.tipo) }
+      
+  |   @
+
+argument:
+  assignment                { argument.tipo = assignment.tipo               }
+
+primary
+  :   LPAREN
+      expression
+      RPAREN                { primary.tipo = expression.tipo                }
+  |   LITERAL               { primary.tipo = lookup(LITERAL.token).tipo     }
+  |   IDENTIFIER            { primary.tipo = lookup(IDENTIFIER.token).tipo  }
+
+
+

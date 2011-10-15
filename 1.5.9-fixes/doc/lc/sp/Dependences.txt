@@ -1,0 +1,75 @@
+
+<DELPHI>:
+
+Localization:                Definición de las constantes que son strings que dependen del lenguaje de localización.
+
+Base:                        para units estilo Tools, que proveen funciones utilitarias
+                             pero sin lógica agregada. Y sólo usan las units provistas por
+                             la implementación de Delphi.
+
+Interfaces:                  Definiciones de interfaces abstractas como IStream, etc. que no involucran ninguna
+                             dependencia del sistema operativo, y que representan habilidades más que servicios.
+
+
+Library:                     Implementaciones abstractas provistas por la librería tal como TReferencedObject.
+
+
+OS:                          Layer de abstracción del sistema operativo. (OS.pas)
+
+    Interfaces:              Definiciones de interfaces para los servicios del sistema operativo.
+
+    <Platform>:
+
+        Base:                Definicion de las funciones usadas del sistema operativo de forma centralizada.
+
+        Implementation:      Implementación de los servicios del sistema operativo.
+
+    Tools:                   Clases que encapsulan los diferentes servicios provistos bajo diferentes nombres
+
+
+Implementations:
+
+
+Services:                    Servicios provisto por la librería que son de un nivel más alto que los del sistema operativo
+                             por ej: Socket Connection, Thread Pool, etc.
+
+    Interfaces:              Definiciones de la interfaces de los servicios
+
+    Implementations:         Implementacion de los servicios
+
+    Tools:                   Api que acceden a los servicios.
+
+
+Tools:                       APIs generales de la librería hacia el exterior.
+
+
+
+Components:                  Componentes visuales y clases que dependen de la VCL de Delphi ...
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+2)
+    (A)- Abstraccion de la arquitectura en Assembler,
+    (B)- Base,
+    (L)- Lib,
+    (O)- OS,
+    (S)- Servicios,
+    (V)- Comps 
+
+3)
+    (C)- Consts,
+    (E)- Types,
+    (F)- Funciones globales
+    (G)- Constantes Tipadas Globales. Usos tipicos: arrays de mapeo, tablas de listerales, etc. etc.
+    (H)- Headers: imports de DLLs,
+    (I)- Intfs,
+    (J)- Abstract Tools,
+    (K)- Abstract Lib,
+    (M)- Impls
+    (O)- Otras funciones globales a las que se les permite usar cualquiera de los niveles anteriores 
+    (P)- API: wrappers de las funciones del API,
+    (S)- Modulos: units que publican tipos, declaraciones, constantes, etc, de otras,
+    (T)- Tools
+    (W)- Implementaciones de wrappers de componentes de la VCL usando interfaces
+

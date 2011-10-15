@@ -1,0 +1,57 @@
+{********************************************************************************
+ *                  Standard Interface Library (SIL)                            *
+ *                                                                              *
+ *       General purpose library whose design is based in STRONG                *
+ *   use of interfaces.                                                         *
+ *                                                                              *
+ *                                                                              *
+ *     Copyright (C) 2000 Mariano Podestá    marianop@intercom.com.ar           *
+ *     Copyright (C) 2000 Leandro Conde      lconde@str.com.ar                  *
+ *     Copyright (C) 2000 Lisandro Podestá   lisandrop@movi.com.ar              *
+ *                                                                              *
+ *     See License.txt for details.                                             *
+ *                                                                              *
+ *   This library is free software; you can redistribute it and/or              *
+ *   modify it under the terms of the GNU Lesser General Public                 *
+ *   License as published by the Free Software Foundation; either               *
+ *   version 2.1 of the License, or (at your option) any later version.         *
+ *                                                                              *
+ *   This library is distributed in the hope that it will be useful,            *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU          *
+ *   Lesser General Public License for more details.                            *
+ *                                                                              *
+ *   You should have received a copy of the GNU Lesser General Public           *
+ *   License along with this library; if not, write to the Free Software        *
+ *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA  *
+ *                                                                              *
+ ********************************************************************************}
+
+program fbagent;
+
+{%File 'fbagent.xml'}
+
+uses
+  Forms,
+  FmSchedule in 'FmSchedule.pas' {foSchedule},
+  FmRecurrence in 'FmRecurrence.pas' {foRecurrence},
+  FmAgent in 'FmAgent.pas' {foMain},
+  FmTask in 'FmTask.pas' {foTask},
+  FmStep in 'FmStep.pas' {foStep},
+  DmAgent in 'DmAgent.pas' {daAgent: TDataModule},
+  UtXml in 'UtXml.pas',
+  UtLog in 'UtLog.pas',
+  UeAgent in 'UeAgent.pas',
+  UtAgent in 'UtAgent.pas',
+  UfConfig in 'UfConfig.pas',
+  DmTask in 'DmTask.pas' {daTask: TDataModule},
+  UiRecurrence in 'UiRecurrence.pas',
+  UmRecurrence in 'UmRecurrence.pas';
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.CreateForm(TfoMain, foMain);
+  Application.Run;
+end.

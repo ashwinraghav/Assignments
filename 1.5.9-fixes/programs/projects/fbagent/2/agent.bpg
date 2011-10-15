@@ -1,0 +1,29 @@
+#------------------------------------------------------------------------------
+VERSION = BWS.01
+#------------------------------------------------------------------------------
+!ifndef ROOT
+ROOT = $(MAKEDIR)\..
+!endif
+#------------------------------------------------------------------------------
+MAKE = $(ROOT)\bin\make.exe -$(MAKEFLAGS) -f$**
+DCC = $(ROOT)\bin\dcc32.exe $**
+BRCC = $(ROOT)\bin\brcc32.exe $**
+#------------------------------------------------------------------------------
+PROJECTS = fbagent.exe fbsqla_app.exe fbsqla.exe sendmail.exe
+#------------------------------------------------------------------------------
+default: $(PROJECTS)
+#------------------------------------------------------------------------------
+
+fbagent.exe: fbagent.dpr
+  $(DCC)
+
+fbsqla_app.exe: fbsqla_app.dpr
+  $(DCC)
+
+fbsqla.exe: fbsqla.dpr
+  $(DCC)
+
+sendmail.exe: ..\..\sendmail\2\sendmail.dpr
+  $(DCC)
+
+

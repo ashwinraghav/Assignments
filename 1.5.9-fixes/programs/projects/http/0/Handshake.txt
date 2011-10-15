@@ -1,0 +1,78 @@
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+GET http://www.yahoo.com/ HTTP/1.0
+Accept: image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, application/vnd.ms-excel, application/msword, application/vnd.ms-powerpoint, */*
+Accept-Language: en-us
+User-Agent: Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0)
+Host: www.yahoo.com
+Proxy-Connection: Keep-Alive
+Cookie: B=16rilbotpi3a8&b=2&f=a; T=z=lWJP7AlWJP7A.SNz8IZCXWUNjY2Bk8wTjEwNzZPTg--&a=AAE&sk=DAAqDVSizNyj/o&d=c2wBTVRFeEFUZzNPVFkzTURFNE9RLS0BYQFBQUUBenoBbFdKUDdBQUFB; PU=t=1
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+HTTP/1.1 407 Proxy authentication required
+Proxy-Authenticate: NTLM
+Proxy-Authenticate: Basic realm="172.16.31.135"
+Content-Length: 503
+Content-Type: text/html
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+GET http://www.yahoo.com/ HTTP/1.0
+Accept: image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, application/vnd.ms-excel, application/msword, application/vnd.ms-powerpoint, */*
+Accept-Language: en-us
+User-Agent: Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0)
+Host: www.yahoo.com
+Proxy-Connection: Keep-Alive
+Proxy-Authorization: NTLM TlRMTVNTUAABAAAABoIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMAAAAAAAAAAwAAAA
+Cookie: B=16rilbotpi3a8&b=2&f=a; T=z=lWJP7AlWJP7A.SNz8IZCXWUNjY2Bk8wTjEwNzZPTg--&a=AAE&sk=DAAqDVSizNyj/o&d=c2wBTVRFeEFUZzNPVFkzTURFNE9RLS0BYQFBQUUBenoBbFdKUDdBQUFB; PU=t=1
+
+*** Sending Fake NTLM header (and body) with Msg1...Done.
+*** Waiting for message 2 from proxy...
+*** Got proxy response header.
+*** Server 'Content-Length' found to be 503.
+*** Got message 2 from proxy.
+*** Proxy header with NTLM Msg2:
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+HTTP/1.1 407 Proxy authentication required
+Proxy-Authenticate: NTLM TlRMTVNTUAACAAAABwAHADAAAAAGggEAzyWvuvERsG8AAAAAAAAAAAAAAAA3AAAAU0lERVJDQQ==
+Proxy-Connection: keep-alive
+Content-Length: 503
+Content-Type: text/html
+
+*** Resetting proxy status...Done. (Proxy buffer - 503 bytes)
+*** Proxy buffer flushed.
+*** Sending Fake NTLM header (not body) with Msg3...Done.
+*** Fake NTLM header with Msg3:
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+GET http://www.yahoo.com/ HTTP/1.0
+Accept: image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, application/vnd.ms-excel, application/msword, application/vnd.ms-powerpoint, */*
+Accept-Language: en-us
+User-Agent: Mozilla/4.0 (compatible; MSIE 5.0; Windows Me)
+Host: www.yahoo.com
+Proxy-Connection: Keep-Alive
+Proxy-Authorization: NTLM TlRMTVNTUAADAAAAGAAYAFQAAAAAAAAAYgAAAAcABwBAAAAABgAGAEcAAAAHAAcATQAAAAAAAABsAAAABoIAAFNJREVSQ0FUNTYyNjdIQ0MzNTE3kphrjPXOKPXr9Y0V3PyzWmBsu8QGoM+l
+Cookie: B=16rilbotpi3a8&b=2&f=a; T=z=lWJP7AlWJP7A.SNz8IZCXWUNjY2Bk8wTjEwNzZPTg--&a=AAE&sk=DAAqDVSizNyj/o&d=c2wBTVRFeEFUZzNPVFkzTURFNE9RLS0BYQFBQUUBenoBbFdKUDdBQUFB; PU=t=1
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+HTTP/1.1 200 OK
+Via: 1.1 SIDCNPX0
+Proxy-Connection: Keep-Alive
+Content-Length: 16447
+Age: 385
+Content-Type: text/html
+Date: Mon, 17 Dec 2001 19:42:24 GMT
+
+*** Sending proxy response header to client...Done.
+*** Sent 1297 bytes to client. (0 16447)
+*** Sent 2920 bytes to client. (0 16447)
+*** Sent 1460 bytes to client. (0 16447)
+*** Sent 1460 bytes to client. (0 16447)
+*** Sent 1460 bytes to client. (0 16447)
+*** Sent 1460 bytes to client. (0 16447)
+*** Sent 4096 bytes to client. (0 16447)
+*** Sent 284 bytes to client. (0 16447)
+*** Sent 1460 bytes to client. (0 16447)
+*** Sent 550 bytes to client. (1 16447)
+*** Sent ALL the data from proxy to client. (Proxy buffer - 0 bytes)
+*** Resetting client status...Done. (Client buffer - 0 bytes)
+*** Resetting proxy status...Done. (Proxy buffer - 0 bytes)
+*** Request completed.
+*** Exception in client recv happend.
+*** Client closed connection.
+*** Termination conditions detected. Stop Request issued.
+*** Closing thread...Done.

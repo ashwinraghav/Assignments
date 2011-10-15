@@ -1,0 +1,4 @@
+service/gui: ver filesystem remoto para backups/log
+gui: show service status
+setup: database/user/password
+setup: add agent.fdb to aliases.conf

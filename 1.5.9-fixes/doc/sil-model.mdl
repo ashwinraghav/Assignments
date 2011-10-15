@@ -1,0 +1,348 @@
+
+(object Petal
+    version    	46
+    _written   	"Rose 7.7.0204.3001"
+    charSet    	0)
+
+(object Design "Logical View"
+    is_unit    	TRUE
+    is_loaded  	TRUE
+    attributes 	(list Attribute_Set
+	(object Attribute
+	    tool       	"Java"
+	    name       	"IDE"
+	    value      	"Internal Editor")
+	(object Attribute
+	    tool       	"Java"
+	    name       	"UserDefineTagName1"
+	    value      	"")
+	(object Attribute
+	    tool       	"Java"
+	    name       	"UserDefineTagText1"
+	    value      	"")
+	(object Attribute
+	    tool       	"Java"
+	    name       	"UserDefineTagApply1"
+	    value      	"")
+	(object Attribute
+	    tool       	"Java"
+	    name       	"UserDefineTagName2"
+	    value      	"")
+	(object Attribute
+	    tool       	"Java"
+	    name       	"UserDefineTagText2"
+	    value      	"")
+	(object Attribute
+	    tool       	"Java"
+	    name       	"UserDefineTagApply2"
+	    value      	"")
+	(object Attribute
+	    tool       	"Java"
+	    name       	"UserDefineTagName3"
+	    value      	"")
+	(object Attribute
+	    tool       	"Java"
+	    name       	"UserDefineTagText3"
+	    value      	"")
+	(object Attribute
+	    tool       	"Java"
+	    name       	"UserDefineTagApply3"
+	    value      	""))
+    quid       	"43145B9F013E"
+    defaults   	(object defaults
+	rightMargin 	0.250000
+	leftMargin 	0.250000
+	topMargin  	0.250000
+	bottomMargin 	0.500000
+	pageOverlap 	0.250000
+	clipIconLabels 	TRUE
+	autoResize 	TRUE
+	snapToGrid 	TRUE
+	gridX      	16
+	gridY      	16
+	defaultFont 	(object Font
+	    size       	10
+	    face       	"Arial"
+	    bold       	FALSE
+	    italics    	FALSE
+	    underline  	FALSE
+	    strike     	FALSE
+	    color      	0
+	    default_color 	TRUE)
+	showMessageNum 	1
+	showClassOfObject 	TRUE
+	notation   	"Unified")
+    root_usecase_package 	(object Class_Category "Use Case View"
+	quid       	"43145B9F0140"
+	exportControl 	"Public"
+	global     	TRUE
+	logical_models 	(list unit_reference_list)
+	logical_presentations 	(list unit_reference_list
+	    (object UseCaseDiagram "Main"
+		quid       	"43145BAA0084"
+		title      	"Main"
+		zoom       	100
+		max_height 	28350
+		max_width  	21600
+		origin_x   	0
+		origin_y   	0
+		items      	(list diagram_item_list))))
+    root_category 	(object Class_Category "Logical View"
+	attributes 	(list Attribute_Set
+	    (object Attribute
+		tool       	"sc"
+		name       	"SourceControlProject"
+		value      	(value Text 
+|"$/Proyectos NT/Libraries/Delphi/sil/developing/doc/model", OEXFAAAA
+		))
+	    (object Attribute
+		tool       	"sc"
+		name       	"SourceControlDeploymentUnit"
+		value      	(value Text 
+|"$/Proyectos NT/Libraries/Delphi/sil/developing/doc/model", OEXFAAAA
+		))
+	    (object Attribute
+		tool       	"sc"
+		name       	"SourceControlModelProperties"
+		value      	(value Text 
+|"$/Proyectos NT/Libraries/Delphi/sil/developing/doc/model", OEXFAAAA
+		))
+	    (object Attribute
+		tool       	"sc"
+		name       	"SourceControlPath"
+		value      	"D:\\Dev\\Lib\\DP\\SIL\\developing\\doc"))
+	quid       	"43145B9F013F"
+	exportControl 	"Public"
+	global     	TRUE
+	subsystem  	"Component View"
+	quidu      	"43145B9F0141"
+	logical_models 	(list unit_reference_list
+	    (object Class_Category "Sil"
+		is_unit    	TRUE
+		is_loaded  	FALSE
+		file_name  	"D:\\Dev\\Lib\\DP\\SIL\\developing\\doc\\Sil.cat"
+		quid       	"43145C5F01CA"))
+	logical_presentations 	(list unit_reference_list
+	    (object ClassDiagram "Main"
+		quid       	"43145BAA00E1"
+		title      	"Main"
+		zoom       	100
+		max_height 	28350
+		max_width  	21600
+		origin_x   	0
+		origin_y   	0
+		items      	(list diagram_item_list
+		    (object CategoryView "Logical View::Sil" @1
+			location   	(400, 784)
+			font       	(object Font
+			    size       	10
+			    face       	"Arial"
+			    bold       	FALSE
+			    italics    	FALSE
+			    underline  	FALSE
+			    strike     	FALSE
+			    color      	0
+			    default_color 	TRUE)
+			label      	(object ItemLabel
+			    Parent_View 	@1
+			    location   	(256, 700)
+			    fill_color 	13434879
+			    nlines     	2
+			    max_width  	288
+			    justify    	0
+			    label      	"Sil")
+			icon_style 	"Icon"
+			line_color 	3342489
+			fill_color 	13434879
+			quidu      	"43145C5F01CA"
+			width      	300
+			height     	180)))
+	    (object ClassDiagram "Capas"
+		quid       	"4411E18F01A4"
+		title      	"Capas"
+		zoom       	100
+		max_height 	28350
+		max_width  	21600
+		origin_x   	0
+		origin_y   	0
+		items      	(list diagram_item_list
+		    (object CategoryView "Logical View::Sil::Interface::Base" @2
+			location   	(336, 256)
+			font       	(object Font
+			    size       	10
+			    face       	"Arial"
+			    bold       	FALSE
+			    italics    	FALSE
+			    underline  	FALSE
+			    strike     	FALSE
+			    color      	0
+			    default_color 	TRUE)
+			label      	(object ItemLabel
+			    Parent_View 	@2
+			    location   	(192, 194)
+			    fill_color 	13434879
+			    nlines     	2
+			    max_width  	288
+			    justify    	0
+			    label      	"Base")
+			stereotype 	(object ItemLabel
+			    Parent_View 	@2
+			    location   	(192, 144)
+			    fill_color 	13434879
+			    anchor     	10
+			    nlines     	1
+			    max_width  	288
+			    justify    	0
+			    label      	"<<layer>>")
+			icon_style 	"Decoration"
+			line_color 	3342489
+			fill_color 	13434879
+			quidu      	"43145C7E0033"
+			width      	300
+			height     	236)
+		    (object CategoryView "Logical View::Sil::Interface::Library" @3
+			location   	(336, 640)
+			font       	(object Font
+			    size       	10
+			    face       	"Arial"
+			    bold       	FALSE
+			    italics    	FALSE
+			    underline  	FALSE
+			    strike     	FALSE
+			    color      	0
+			    default_color 	TRUE)
+			label      	(object ItemLabel
+			    Parent_View 	@3
+			    location   	(192, 578)
+			    fill_color 	13434879
+			    nlines     	2
+			    max_width  	288
+			    justify    	0
+			    label      	"Library")
+			stereotype 	(object ItemLabel
+			    Parent_View 	@3
+			    location   	(192, 528)
+			    fill_color 	13434879
+			    anchor     	10
+			    nlines     	1
+			    max_width  	288
+			    justify    	0
+			    label      	"<<layer>>")
+			icon_style 	"Decoration"
+			line_color 	3342489
+			fill_color 	13434879
+			quidu      	"43145C820081"
+			width      	300
+			height     	236)
+		    (object ImportView "" @4
+			stereotype 	TRUE
+			line_color 	3342489
+			quidu      	"43145F3D0177"
+			client     	@3
+			supplier   	@2
+			line_style 	0)
+		    (object CategoryView "Logical View::Sil::Interface::OS" @5
+			location   	(336, 1024)
+			font       	(object Font
+			    size       	10
+			    face       	"Arial"
+			    bold       	FALSE
+			    italics    	FALSE
+			    underline  	FALSE
+			    strike     	FALSE
+			    color      	0
+			    default_color 	TRUE)
+			label      	(object ItemLabel
+			    Parent_View 	@5
+			    location   	(192, 962)
+			    fill_color 	13434879
+			    nlines     	2
+			    max_width  	288
+			    justify    	0
+			    label      	"OS")
+			stereotype 	(object ItemLabel
+			    Parent_View 	@5
+			    location   	(192, 912)
+			    fill_color 	13434879
+			    anchor     	10
+			    nlines     	1
+			    max_width  	288
+			    justify    	0
+			    label      	"<<layer>>")
+			icon_style 	"Decoration"
+			line_color 	3342489
+			fill_color 	13434879
+			quidu      	"43145CCA011D"
+			width      	300
+			height     	236)
+		    (object ImportView "" @6
+			stereotype 	TRUE
+			line_color 	3342489
+			quidu      	"43145F4101F4"
+			client     	@5
+			supplier   	@3
+			line_style 	0)
+		    (object CategoryView "Logical View::Sil::Interface::Services" @7
+			location   	(336, 1408)
+			font       	(object Font
+			    size       	10
+			    face       	"Arial"
+			    bold       	FALSE
+			    italics    	FALSE
+			    underline  	FALSE
+			    strike     	FALSE
+			    color      	0
+			    default_color 	TRUE)
+			label      	(object ItemLabel
+			    Parent_View 	@7
+			    location   	(192, 1346)
+			    fill_color 	13434879
+			    nlines     	2
+			    max_width  	288
+			    justify    	0
+			    label      	"Services")
+			stereotype 	(object ItemLabel
+			    Parent_View 	@7
+			    location   	(192, 1296)
+			    fill_color 	13434879
+			    anchor     	10
+			    nlines     	1
+			    max_width  	288
+			    justify    	0
+			    label      	"<<layer>>")
+			icon_style 	"Decoration"
+			line_color 	3342489
+			fill_color 	13434879
+			quidu      	"4411E1A700B9"
+			width      	300
+			height     	236)
+		    (object ImportView "" @8
+			stereotype 	TRUE
+			line_color 	3342489
+			quidu      	"4411E1D00155"
+			client     	@7
+			supplier   	@5
+			line_style 	0)))))
+    root_subsystem 	(object SubSystem "Component View"
+	quid       	"43145B9F0141"
+	physical_models 	(list unit_reference_list)
+	physical_presentations 	(list unit_reference_list
+	    (object Module_Diagram "Main"
+		quid       	"43145BAA0083"
+		title      	"Main"
+		zoom       	100
+		max_height 	28350
+		max_width  	21600
+		origin_x   	0
+		origin_y   	0
+		items      	(list diagram_item_list))))
+    process_structure 	(object Processes
+	is_unit    	TRUE
+	is_loaded  	FALSE
+	file_name  	"D:\\Dev\\Lib\\DP\\SIL\\developing\\doc\\Deployment View.prc"
+	quid       	"43145B9F014E")
+    properties 	(object Properties
+	is_unit    	TRUE
+	is_loaded  	FALSE
+	file_name  	"D:\\Dev\\Lib\\DP\\SIL\\developing\\doc\\Model Properties.prp"
+	quid       	"43145B9F014F"))

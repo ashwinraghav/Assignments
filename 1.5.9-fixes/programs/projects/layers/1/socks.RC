@@ -1,0 +1,31 @@
+LANGUAGE LANG_SPANISH,11
+
+1 VERSIONINFO LOADONCALL MOVEABLE DISCARDABLE IMPURE
+FILEVERSION 1, 0, 0, 0
+PRODUCTVERSION 1, 5, 0, 0
+FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
+FILEOS VOS__WINDOWS32
+FILETYPE VFT_DLL
+{
+ BLOCK "StringFileInfo"
+ {
+  BLOCK "040904e4"
+  {
+   VALUE "CompanyName", "Sil Software Inc.\000"
+   VALUE "FileDescription", "Socket Device Layer\000"
+   VALUE "FileVersion", "1.0.0.0\000"
+   VALUE "InternalName", "\000"
+   VALUE "LegalCopyright", "LGPL 2003\000"
+   VALUE "OriginalFilename", "laysocks.so\000"
+   VALUE "ProductName", "Sil Layer Runtime\000"
+   VALUE "ProductVersion", "1.5.0.0\000"
+  }
+ }
+
+ BLOCK "VarFileInfo"
+ {
+  VALUE "Translation", 1033, 1252
+ }
+
+}
+

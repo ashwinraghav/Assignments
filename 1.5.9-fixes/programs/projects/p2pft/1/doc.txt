@@ -1,0 +1,14 @@
+
+config
+.puerto
+.identificacion
+.directorios subida
+.directorio bajada
+
+ventana
+.conexiones (combo)
+.archivos remotos
+
+opciones
+.bajar
+

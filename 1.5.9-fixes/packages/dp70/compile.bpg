@@ -1,0 +1,35 @@
+#------------------------------------------------------------------------------
+VERSION = BWS.01
+#------------------------------------------------------------------------------
+!ifndef ROOT
+ROOT = $(MAKEDIR)\..
+!endif
+#------------------------------------------------------------------------------
+MAKE = $(ROOT)\bin\make.exe -$(MAKEFLAGS) -f$**
+DCC = $(ROOT)\bin\dcc32.exe $**
+BRCC = $(ROOT)\bin\brcc32.exe $**
+#------------------------------------------------------------------------------
+PROJECTS = siltext150d70.bpl silx150d70.bpl siltoolx.bpl.70.1.5.0 silvclx.bpl.70.1.5.0 silcomps.bpl sildsg.bpl
+#------------------------------------------------------------------------------
+default: $(PROJECTS)
+#------------------------------------------------------------------------------
+
+silcomps.bpl: silcomps.dpk
+  $(DCC)
+
+sildsg.bpl: sildsg.dpk
+  $(DCC)
+
+silx150d70.bpl: silx.dpk
+  $(DCC)
+
+siltext150d70.bpl: siltext.dpk
+  $(DCC)
+
+siltoolx.bpl.70.1.5.0: siltoolx.dpk
+  $(DCC)
+
+silvclx.bpl.70.1.5.0: silvclx.dpk
+  $(DCC)
+
+
