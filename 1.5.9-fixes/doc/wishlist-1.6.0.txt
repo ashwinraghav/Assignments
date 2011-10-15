@@ -1,9 +1,0 @@
-wish list of version 1.6.0:
-
-->  finish the implementation of the abstract OS layer.
-->  implement the missing parts to port the library to linux
-->  re-write the log/trace code
-->  finish the implementation of friendly interfaces for the containers
-      add new container types: hash, maps sets, trees, graphs, etc
-->  split the library layer in many smaller units: Sil -> SilList, SilLockers, etc.
-

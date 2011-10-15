@@ -1,8 +1,0 @@
-GET http://www.yahoo.com/ HTTP/1.0
-Accept: image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, application/vnd.ms-excel, application/msword, application/vnd.ms-powerpoint, */*
-Accept-Language: en-us
-User-Agent: Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0)
-Host: www.yahoo.com
-Proxy-Connection: Keep-Alive
-Cookie: B=16rilbotpi3a8&b=2&f=a; T=z=lWJP7AlWJP7A.SNz8IZCXWUNjY2Bk8wTjEwNzZPTg--&a=AAE&sk=DAAqDVSizNyj/o&d=c2wBTVRFeEFUZzNPVFkzTURFNE9RLS0BYQFBQUUBenoBbFdKUDdBQUFB; PU=t=1
-
