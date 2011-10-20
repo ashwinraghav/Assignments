@@ -29,7 +29,7 @@
 open Utils
 open Cil
 open Z3
-
+open Printf
 (**********************************************************************
  * Path Enumeration
  *
@@ -419,8 +419,9 @@ let solve_constraints
   end ; 
   (* Much of the work here is converting from CIL Abstract Syntax Trees to
    * Z3 Abstract Syntax Trees. *) 
-  let int_sort = mk_int_sort ctx in (* Possible FIXME: reals unhandled *) 
-  let zero_ast = mk_int ctx 0 int_sort in 
+  let real_sort = Z3.mk_real_sort ctx in (* Possible FIXME: reals unhandled *) 
+  let int_sort = Z3.mk_int_sort ctx in (* Possible FIXME: reals unhandled *) 
+  let zero_ast = Z3.mk_int ctx 0 int_sort in 
   let undefined_ast = zero_ast in 
 
   (* Every time we encounter the same C variable "foo" we want to map
@@ -457,7 +458,8 @@ let solve_constraints
       (* Possible FIXME: large numbers are not handled *) 
       let i = Int64.to_int i in 
       Z3.mk_int ctx i int_sort 
-
+    | Const(CReal(r,_,_)) ->
+	Z3.mk_real ctx 10 2; 
     | Const(CChr(c)) -> 
       (* Possible FIXME: characters are justed treated as integers *) 
       let i = Char.code c in
