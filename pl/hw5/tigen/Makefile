@@ -60,7 +60,7 @@ test: test-sources instrument tigen
 	mkdir test 
 	cd test-sources ; for d in */ ; do mkdir -p ../test/$$d ; for f in $$d/* ; do ../instrument $$f >> ../test/$$f.c ; ../tigen ../test/$$f.c ; done ; done
 
-eval: test 
+eval: clean test 
 	$(RM) -rf report.txt
 	cd test ; for d in */ ; do cd $$d ; $(RM) -rf output ; for t in test[0-9]*.c ; do echo $$d $$t ; gcc *.i.c $$t > /dev/null 2> /dev/null ; ./a.out >> output 2> /dev/null ; done ; echo -n *.i.c : You reached `grep ________ output | sort | uniq | wc -l` " " >> ../../report.txt ; grep MAX *.i.c >> ../../report.txt ; cd .. ; done  
 	cat report.txt
