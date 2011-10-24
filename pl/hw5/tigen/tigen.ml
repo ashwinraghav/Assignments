@@ -250,7 +250,17 @@ let symbolic_variable_state_lookup
         None
     end 
   | Lval(Mem(exp),NoOffset) -> None (* cannot handle memory access *) 
-  | Lval(lhost,Field(_)) -> None (* cannot handle field access *) 
+  | Lval(lhost,Field(f,o)) ->  (* cannot handle field access *) 
+      begin
+        match lhost with
+        |Var(va) ->
+        try
+	  Printf.printf "It is coming here %s %s\n" va.vname f.fname ;
+          Some(StringMap.find va.vname sigma)
+        with Not_found ->
+          None
+        |_ -> None
+       end
   | Lval(lhost,Index(_)) -> None (* cannot handle array index *) 
   | _ -> None (* not a variable *) 
   in 
@@ -374,8 +384,18 @@ let symbolic_execution
             { state with register_file = new_register_file } 
           | Set((Mem(address),_),rhs,_) ->
             (* Possible FIXME: cannot handle memory accesses like *p *) state 
-          | Set((_,Field(f,o)),rhs,_) -> 
-            (* Possible FIXME: cannot handle field accesses like e.fld *) state 
+          | Set((lhost ,Field(f,o)),rhs,_) -> 
+            begin
+	    match lhost with
+            |Var(va) -> 
+              let evaluated_rhs = symbolic_variable_state_substitute 
+              state.register_file rhs 
+            in 
+            let new_register_file = symbolic_variable_state_update 
+              state.register_file va.vname evaluated_rhs in
+            { state with register_file = new_register_file } 
+            end
+            (* Possible FIXME: cannot handle field accesses like e.fld *) 
           | Set((_,Index(i,o)),rhs,_) -> 
             (* Possible FIXME: cannot handle array indexing like a[i] *) state 
 
@@ -480,7 +500,7 @@ let i = Int64.to_int i in
     | Lval(Var(va),NoOffset) -> Printf.printf("********************************");var_to_ast va.vname va.vtype 
 
     | Lval(_) -> 
-      (* Possible FIXME: var.field, *p, a[i], etc., are not handled *) 
+      Printf.printf"INCOMMMMINGGGGGGGGGGG";(* Possible FIXME: var.field, *p, a[i], etc., are not handled *) 
       undefined_ast
 
     | UnOp(Neg,e,_) -> mk_unary_minus ctx (exp_to_ast e) 
