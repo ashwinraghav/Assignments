@@ -427,15 +427,21 @@ let solve_constraints
   (* Every time we encounter the same C variable "foo" we want to map
    * it to the same Z3 node. We use a hash table to track this. *) 
   let symbol_ht = Hashtbl.create 255 in
-  let var_to_ast str = 
+  let var_to_ast var_name var_type = 
     try
-      Hashtbl.find symbol_ht str
-    with _ -> 
-      let sym = mk_string_symbol ctx str in
-      (* Possible FIXME: currently we assume all variables are integers. *)
-      let ast = mk_const ctx sym int_sort in 
-      Hashtbl.replace symbol_ht str ast ;
-      ast
+      Hashtbl.find symbol_ht var_name
+    with _ -> begin
+      let sym = mk_string_symbol ctx var_name in
+      match var_type with
+	|TFloat(kind, attributes) ->	
+	  let ast = mk_const ctx sym real_sort in 
+          Hashtbl.replace symbol_ht var_name ast ;
+          ast
+	|_->
+	  let ast = mk_const ctx sym real_sort in 
+          Hashtbl.replace symbol_ht var_name ast ;
+	  mk_const ctx sym real_sort
+end	
   in 
   (* In Z3, boolean-valued and integer-valued expressions are different
    * (i.e., have different _Sort_s). CIL does not have this issue. *) 
@@ -456,10 +462,12 @@ let solve_constraints
   let rec exp_to_ast (exp : Cil.exp) : Z3.ast = match exp with
     | Const(CInt64(i,_,_)) -> 
       (* Possible FIXME: large numbers are not handled *) 
-      let i = Int64.to_int i in 
+let i = Int64.to_int i in 
       Z3.mk_int ctx i int_sort 
-    | Const(CReal(r,_,_)) ->
-	Z3.mk_real ctx 10 2; 
+    | Const(CReal(value, fkind, string_rep)) ->
+	let multiplier  = 10000.0
+	in mk_real ctx (int_of_float (value*.multiplier)) (int_of_float multiplier)
+	
     | Const(CChr(c)) -> 
       (* Possible FIXME: characters are justed treated as integers *) 
       let i = Char.code c in
@@ -469,7 +477,7 @@ let solve_constraints
       (* Possible FIXME: reals, enums, strings, etc., are not handled *) 
       undefined_ast
 
-    | Lval(Var(va),NoOffset) -> var_to_ast va.vname 
+    | Lval(Var(va),NoOffset) -> Printf.printf("********************************");var_to_ast va.vname va.vtype 
 
     | Lval(_) -> 
       (* Possible FIXME: var.field, *p, a[i], etc., are not handled *) 
@@ -505,18 +513,20 @@ let solve_constraints
    * and tell the theorem prover to assert it as true (i.e., as a
    * constraint). *) 
   List.iter (fun cil_exp -> 
-    try 
+    try
+	Printf.printf ("before asserting") ;
       let z3_ast = exp_to_ast cil_exp in 
-      (*
-      debug "tigen: asserting %s\n" 
+      
+      (*debug "tigen: asserting %s\n" 
         (Z3.ast_to_string ctx z3_ast) ; 
-      *) 
+      *)
+	Printf.printf ("before asserting") ;
+ 
       Z3.assert_cnstr ctx z3_ast ; 
     with _ -> begin  
-    (*
+    
       debug "tigen: cannot convert %s to Z3\n"
         (Pretty.sprint ~width:80 (dn_exp () cil_exp)) ;
-        *) 
         ()
     end 
   ) state.assumptions ; 
@@ -531,7 +541,7 @@ let solve_constraints
     let solution = ref StringMap.empty in 
     List.iter (fun formal_variable ->
       let underscore_name = "_" ^ formal_variable.vname in 
-      let z3_ast = var_to_ast underscore_name in 
+      let z3_ast = var_to_ast underscore_name formal_variable.vtype in 
       let worked, evaluated = Z3.eval ctx model z3_ast in 
       let evaluated = Z3.ast_to_string ctx evaluated in 
       if worked && evaluated <> "" && evaluated.[0] <> '_' then begin
@@ -586,9 +596,12 @@ let emit_test_case
    * case. *) 
   List.iter (fun formal -> 
     try 
-      let value = StringMap.find formal.vname solution in 
-      Printf.fprintf fout "\t%s = %s;\n" 
-        formal.vname value 
+      let value = StringMap.find formal.vname solution in
+      match formal.vtype with 
+	|TFloat(kind, attributes) ->
+		 Printf.fprintf fout "\t%s = (double)%s;\n" formal.vname value 
+     	|_ ->
+		 Printf.fprintf fout "\t%s = %s;\n" formal.vname value 
     with _ -> () 
   ) target_fundec.sformals ; 
 
