@@ -217,26 +217,48 @@ module OrderedString =
     type t = string
     let compare = compare
   end
+
 module StringMap = Map.Make(OrderedString)
 module StringSet = Set.Make(OrderedString)
+ 
+let empty_symbolic_variable_state = StringMap.empty 
+
+module OrderedRecord =
+  struct
+    type t = string
+    let compare = compare
+  end
 
 type symbolic_variable_state = Cil.exp StringMap.t 
-
-let empty_symbolic_variable_state = StringMap.empty 
+(*type fields = Cil.exp StringMap.t*)
+(*type fields =  field list*)
+type symbolic_record_state = symbolic_variable_state  StringMap.t
 
 (* The usual state update: sigma[variable_name := new_value] *) 
 let symbolic_variable_state_update 
   (sigma : symbolic_variable_state)  
   (variable_name : string)
-  (new_value : Cil.exp) 
+  (new_value) 
   : symbolic_variable_state
   =
   StringMap.add variable_name new_value sigma 
+
+let symbolic_record_state_update 
+  (sigma : symbolic_record_state)  
+  (record_name : string)
+  (new_value : symbolic_variable_state) 
+  : symbolic_record_state
+  =
+  StringMap.add record_name new_value sigma 
 
 (*
  * Look up a variable in the symbolic state. For example, if we know that
  * [x=10] and [y=z+3] and we lookup "y", we expect to get "z+3" out.
  *)
+let symbolic_record_lookup (sigma : symbolic_record_state) (record_name:string) (field_name:string) :Cil.exp =
+  let fields = StringMap.find record_name sigma in
+  StringMap.find field_name fields
+
 let symbolic_variable_state_lookup 
       (sigma : symbolic_variable_state) 
       (variable : Cil.exp) 
@@ -251,16 +273,7 @@ let symbolic_variable_state_lookup
     end 
   | Lval(Mem(exp),NoOffset) -> None (* cannot handle memory access *) 
   | Lval(lhost,Field(f,o)) ->  (* cannot handle field access *) 
-      begin
-        match lhost with
-        |Var(va) ->
-        try
-	  Printf.printf "It is coming here %s %s\n" va.vname f.fname ;
-          Some(StringMap.find va.vname sigma)
-        with Not_found ->
-          None
-        |_ -> None
-       end
+  None
   | Lval(lhost,Index(_)) -> None (* cannot handle array index *) 
   | _ -> None (* not a variable *) 
   in 
@@ -268,6 +281,28 @@ let symbolic_variable_state_lookup
   | Some(answer) -> answer
   | None -> variable 
 
+let symbolic_record_state_lookup 
+      (sigma : symbolic_record_state) 
+      (variable : Cil.exp) 
+      : Cil.exp =
+  let found = match variable with
+  | Lval(lhost,Field(f,o)) ->  (* cannot handle field access *) 
+      begin
+        match lhost with
+        |Var(va) ->
+        try
+	  Printf.printf "It is coming here %s %s\n" va.vname f.fname ;
+          Some(symbolic_record_lookup sigma va.vname f.fname);
+        None
+        with Not_found ->
+          None
+        |_ -> None
+       end
+  | _ -> None (* not a variable *) 
+  in 
+  match found with
+  | Some(answer) -> answer
+  | None -> variable 
 (*
  * Rewrite an expression based on the current symbolic state.  For example,
  * if we know that [x=10] and [y=z+3] and we lookup "sin(x+y)", we expect
@@ -458,7 +493,7 @@ let solve_constraints
           Hashtbl.replace symbol_ht var_name ast ;
           ast
 	|_->
-	  let ast = mk_const ctx sym real_sort in 
+	  let ast = mk_const ctx sym int_sort in 
           Hashtbl.replace symbol_ht var_name ast ;
 	  mk_const ctx sym real_sort
 end	
