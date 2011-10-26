@@ -79,7 +79,6 @@ let path_enumeration
     | Exploring_Statement(s) when 
       List.exists (fun already_visited -> match already_visited with
         | Statement(visited_s) when visited_s.sid = s.sid -> 
-        debug "\nTHe statements are %s\n" (Pretty.sprint ~width:80 (dn_stmt () visited_s)); 
 true
         | _ -> false
       ) path -> Queue.add (path,Exploring_Done,[],[],[]) worklist
@@ -274,7 +273,7 @@ let symbolic_variable_state_lookup
       (sigma2 : symbolic_record_state) 
       (variable : Cil.exp) 
       : Cil.exp =
-  debug "var lookup %s\n\n\n" (Pretty.sprint 8 (dn_exp () variable));
+  (*debug "var lookup %s\n\n\n" (Pretty.sprint 8 (dn_exp () variable));*)
   let found = match variable with
   | Lval(Var(va),NoOffset) -> 
     begin
@@ -288,7 +287,6 @@ let symbolic_variable_state_lookup
         match lhost with
         |Var(va) ->
         try
-	  Printf.printf "\nIt is coming here %s %s\n" va.vname f.fname ;
           Some(symbolic_record_lookup sigma2 va.vname f.fname)
         with Not_found ->
           None
@@ -300,28 +298,6 @@ let symbolic_variable_state_lookup
   | Some(answer) -> answer
   | None -> variable 
 
-let symbolic_record_state_lookup 
-      (sigma : symbolic_record_state) 
-      (variable : Cil.exp) 
-      : Cil.exp =
-  debug "recor_lookup %s" (Pretty.sprint 8 (dn_exp () variable));
-  let found = match variable with
-  | Lval(lhost,Field(f,o)) ->  (* cannot handle field access *) 
-      begin
-        match lhost with
-        |Var(va) ->
-        try
-	  Printf.printf "\nIt is coming here %s %s\n" va.vname f.fname ;
-          Some(symbolic_record_lookup sigma va.vname f.fname)
-        with Not_found ->
-          None
-        |_ -> None
-       end
-  | _ -> None (* not a variable *) 
-  in 
-  match found with
-  | Some(answer) -> answer
-  | None -> variable 
 (*
  * Rewrite an expression based on the current symbolic state.  For example,
  * if we know that [x=10] and [y=z+3] and we lookup "sin(x+y)", we expect
@@ -338,14 +314,6 @@ let symbolic_record_state_lookup
       ))
   end 
   
-  class substituteVisitor_r (sigma : symbolic_record_state) = object
-    inherit nopCilVisitor
-    method vexpr e = 
-      ChangeDoChildrenPost(e,(fun e ->
-        symbolic_record_state_lookup sigma e
-      ))
-  end 
-
 
 let symbolic_variable_state_substitute 
       (sigma : symbolic_variable_state)
@@ -353,13 +321,6 @@ let symbolic_variable_state_substitute
       (exp : Cil.exp) 
       : Cil.exp =
   let sv = new substituteVisitor sigma sigma2 in 
-  visitCilExpr sv exp 
-
-let symbolic_record_state_substitute 
-      (sigma : symbolic_record_state) 
-      (exp : Cil.exp) 
-      : Cil.exp =
-  let sv = new substituteVisitor_r sigma in 
   visitCilExpr sv exp 
 
 (**********************************************************************
@@ -455,8 +416,8 @@ let symbolic_execution
       | Lval(lhost,Field(f,o)) -> 
         match lhost with
 	| Var(va) ->
-        let new_value = Lval(Var(makeVarinfo false ("_" ^ va.vname) 
-        (TVoid [])),NoOffset) in
+        let new_value = Lval(Var(makeVarinfo false ("_" ^ va.vname ^ "." ^ f.fname) 
+        (TVoid [])),Field(f,o)) in
     	symbolic_record_state_update state va.vname f.fname new_value
   )!records state.record_register_file in 
   
@@ -474,7 +435,7 @@ let symbolic_execution
         state.register_file state.record_register_file e in
       { state with assumptions = evaluated_e :: state.assumptions} 
     | Statement(s) -> begin
-      debug "\nTHe statements are %s\n" (Pretty.sprint ~width:80 (dn_stmt () s)); 
+      (*debug "\nTHe statements are %s\n" (Pretty.sprint ~width:80 (dn_stmt () s)); *)
       match s.skind with
       | Instr(il) -> 
         List.fold_left (fun state instr ->
@@ -489,6 +450,7 @@ let symbolic_execution
           | Set((Mem(address),_),rhs,_) ->
             (* Possible FIXME: cannot handle memory accesses like *p *) state 
           | Set((lhost ,Field(f,o)),rhs,_) -> 
+	    Printf.printf "\nInside this things da machi!\n\n";
           begin
 	    match lhost with
             |Var(va) ->
@@ -593,10 +555,18 @@ end
 
     | Lval(Var(va),NoOffset) -> var_to_ast va.vname va.vtype 
     | Lval(Var(va), Field(f,o) ) -> 
-       Printf.printf "THE OTHER FORMAT  %s %s %s\n\n\n" f.fname 
-       (Pretty.sprint 8 (dn_type () f.ftype))
-       (Pretty.sprint 8 (dn_type () va.vtype));
-       undefined_ast
+      (*let field_names = [|mk_string_symbol ctx f.fname|]in
+      let field_sort = mk_int_sort(ctx) in
+      let field_sorts = [|field_sort|]in
+      let field_accessors = [|1;2;3|]in
+      let type_name = mk_string_symbol ctx va.vname in
+      let recogniser = mk_string_symbol ctx "b" in
+      let con_sym = mk_string_symbol ctx f.fname in
+      let constructor = mk_constructor ctx recogniser con_sym field_names field_sorts field_accessors in
+      let constructors = [|constructor|] in 
+      let typ_con = [|(field_sort, constructor)|] in
+*)  
+      undefined_ast
 
     | Lval(_) -> 
      (*begin
@@ -618,7 +588,6 @@ end*)
 	    let recogniser = mk_string_symbol ctx "b" in
             mk_datatype ctx type_name recogniser field_names field_sorts field_accessors;
 	   *)
-       Printf.printf "I AM IN HERE  \n\n\n";
        undefined_ast
       (* Possible FIXME: var.field, *p, a[i], etc., are not handled *) 
     | UnOp(Neg,e,_) -> mk_unary_minus ctx (exp_to_ast e) 
@@ -652,13 +621,11 @@ end*)
    * constraint). *) 
   List.iter (fun cil_exp -> 
     try
-	Printf.printf ("before asserting") ;
       let z3_ast = exp_to_ast cil_exp in 
       
       debug "tigen: asserting %s\n" 
         (Z3.ast_to_string ctx z3_ast) ; 
       
-	Printf.printf ("before asserting") ;
  
       Z3.assert_cnstr ctx z3_ast ; 
     with _ -> begin  
