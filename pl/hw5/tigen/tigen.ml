@@ -78,7 +78,9 @@ let path_enumeration
     match where with
     | Exploring_Statement(s) when 
       List.exists (fun already_visited -> match already_visited with
-        | Statement(visited_s) when visited_s.sid = s.sid -> true
+        | Statement(visited_s) when visited_s.sid = s.sid -> 
+        debug "\nTHe statements are %s\n" (Pretty.sprint ~width:80 (dn_stmt () visited_s)); 
+true
         | _ -> false
       ) path -> Queue.add (path,Exploring_Done,[],[],[]) worklist
     | _ -> Queue.add (path,where,nn,nb,nc) worklist 
@@ -165,7 +167,7 @@ let path_enumeration
         end 
 
       | If(exp,then_branch,else_branch,_) -> 
-        (* As usual in Axiomatic Semantics, when exploring the Then-Branch 
+(* As usual in Axiomatic Semantics, when exploring the Then-Branch 
          * you get to assume the conditional is True, and when exploring
          * the Else-Branch you get to assume that it is false. *) 
         let then_condition = exp in
@@ -222,6 +224,7 @@ module StringMap = Map.Make(OrderedString)
 module StringSet = Set.Make(OrderedString)
  
 let empty_symbolic_variable_state = StringMap.empty 
+let empty_symbolic_record_state = StringMap.empty 
 
 module OrderedRecord =
   struct
@@ -230,15 +233,14 @@ module OrderedRecord =
   end
 
 type symbolic_variable_state = Cil.exp StringMap.t 
-(*type fields = Cil.exp StringMap.t*)
-(*type fields =  field list*)
-type symbolic_record_state = symbolic_variable_state  StringMap.t
+type symbolic_record_state = (string*Cil.exp)list StringMap.t
+type record_list = Cil.exp list
 
 (* The usual state update: sigma[variable_name := new_value] *) 
 let symbolic_variable_state_update 
   (sigma : symbolic_variable_state)  
   (variable_name : string)
-  (new_value) 
+  (new_value : Cil.exp) 
   : symbolic_variable_state
   =
   StringMap.add variable_name new_value sigma 
@@ -246,23 +248,33 @@ let symbolic_variable_state_update
 let symbolic_record_state_update 
   (sigma : symbolic_record_state)  
   (record_name : string)
-  (new_value : symbolic_variable_state) 
+  (field_name : string)
+  (new_value : Cil.exp) 
   : symbolic_record_state
   =
-  StringMap.add record_name new_value sigma 
-
+  if (StringMap.mem record_name sigma) then
+    let fields = StringMap.find record_name sigma in 
+      let old_list = List.filter(fun field -> (fst(field) <> field_name))fields in
+        let new_list = (field_name, new_value) :: old_list in
+        StringMap.add record_name new_list sigma
+  else
+    let new_list = (field_name, new_value) :: [] in
+    StringMap.add record_name new_list sigma
 (*
  * Look up a variable in the symbolic state. For example, if we know that
  * [x=10] and [y=z+3] and we lookup "y", we expect to get "z+3" out.
  *)
 let symbolic_record_lookup (sigma : symbolic_record_state) (record_name:string) (field_name:string) :Cil.exp =
-  let fields = StringMap.find record_name sigma in
-  StringMap.find field_name fields
+  let record = StringMap.find record_name sigma in
+  let field = List.filter(fun field -> (fst(field) == field_name))record in
+  snd(List.nth field 0)
 
 let symbolic_variable_state_lookup 
       (sigma : symbolic_variable_state) 
+      (sigma2 : symbolic_record_state) 
       (variable : Cil.exp) 
       : Cil.exp =
+  debug "var lookup %s\n\n\n" (Pretty.sprint 8 (dn_exp () variable));
   let found = match variable with
   | Lval(Var(va),NoOffset) -> 
     begin
@@ -271,10 +283,17 @@ let symbolic_variable_state_lookup
       with Not_found -> 
         None
     end 
-  | Lval(Mem(exp),NoOffset) -> None (* cannot handle memory access *) 
   | Lval(lhost,Field(f,o)) ->  (* cannot handle field access *) 
-  None
-  | Lval(lhost,Index(_)) -> None (* cannot handle array index *) 
+      begin
+        match lhost with
+        |Var(va) ->
+        try
+	  Printf.printf "\nIt is coming here %s %s\n" va.vname f.fname ;
+          Some(symbolic_record_lookup sigma2 va.vname f.fname)
+        with Not_found ->
+          None
+        |_ -> None
+       end
   | _ -> None (* not a variable *) 
   in 
   match found with
@@ -285,15 +304,15 @@ let symbolic_record_state_lookup
       (sigma : symbolic_record_state) 
       (variable : Cil.exp) 
       : Cil.exp =
+  debug "recor_lookup %s" (Pretty.sprint 8 (dn_exp () variable));
   let found = match variable with
   | Lval(lhost,Field(f,o)) ->  (* cannot handle field access *) 
       begin
         match lhost with
         |Var(va) ->
         try
-	  Printf.printf "It is coming here %s %s\n" va.vname f.fname ;
-          Some(symbolic_record_lookup sigma va.vname f.fname);
-        None
+	  Printf.printf "\nIt is coming here %s %s\n" va.vname f.fname ;
+          Some(symbolic_record_lookup sigma va.vname f.fname)
         with Not_found ->
           None
         |_ -> None
@@ -311,19 +330,36 @@ let symbolic_record_state_lookup
  * We use Cil's visitor pattern to implement this.
  * http://en.wikipedia.org/wiki/Visitor_pattern
  *)
-  class substituteVisitor (sigma : symbolic_variable_state) = object
+  class substituteVisitor (sigma : symbolic_variable_state) (sigma2 : symbolic_record_state) = object
     inherit nopCilVisitor
     method vexpr e = 
       ChangeDoChildrenPost(e,(fun e ->
-        symbolic_variable_state_lookup sigma e
+        symbolic_variable_state_lookup sigma sigma2 e
+      ))
+  end 
+  
+  class substituteVisitor_r (sigma : symbolic_record_state) = object
+    inherit nopCilVisitor
+    method vexpr e = 
+      ChangeDoChildrenPost(e,(fun e ->
+        symbolic_record_state_lookup sigma e
       ))
   end 
 
+
 let symbolic_variable_state_substitute 
-      (sigma : symbolic_variable_state) 
+      (sigma : symbolic_variable_state)
+      (sigma2 : symbolic_record_state) 
       (exp : Cil.exp) 
       : Cil.exp =
-  let sv = new substituteVisitor sigma in 
+  let sv = new substituteVisitor sigma sigma2 in 
+  visitCilExpr sv exp 
+
+let symbolic_record_state_substitute 
+      (sigma : symbolic_record_state) 
+      (exp : Cil.exp) 
+      : Cil.exp =
+  let sv = new substituteVisitor_r sigma in 
   visitCilExpr sv exp 
 
 (**********************************************************************
@@ -340,19 +376,31 @@ let symbolic_variable_state_substitute
 
 type symex_state = {
   register_file : symbolic_variable_state ;
+  record_register_file : symbolic_record_state ;
   assumptions : Cil.exp list ;
 } 
 
 let empty_symex_state = {
   register_file = empty_symbolic_variable_state ;
+  record_register_file = empty_symbolic_record_state ;
   assumptions = [] ; 
 } 
 
   class noteVarVisitor (varset : StringSet.t ref) = object
     inherit nopCilVisitor
-    method vvrbl v = 
+    method vvrbl v =
       varset := StringSet.add v.vname !varset ;
       DoChildren
+  end
+
+  class noteRecordVisitor (rec_list : Cil.exp list ref) = object
+    inherit nopCilVisitor
+    method vexpr e = 
+      match e with
+        | Lval(lhost,Field(f,o)) ->
+	  rec_list := e::!rec_list ;
+          DoChildren
+	| _ -> DoChildren
   end 
 
 (* Given a path, produce a final symbolic execution state (a symbolic
@@ -363,7 +411,7 @@ let symbolic_execution
   : symex_state 
   =
 
-  if false then begin (* enable this for symex debugging *) 
+  if true then begin (* enable this for symex debugging *) 
     debug "\ntigen: symex:\n" ;
     List.iter (fun step -> 
       match step with
@@ -381,18 +429,38 @@ let symbolic_execution
    *
    * Possible FIXME: This may not handle memory (i.e., arrays, pointers)
    * correctly. *) 
+  let records = ref  [] in 
+  let nrv = new noteRecordVisitor records in 
+  List.iter (fun step -> match step with
+    | Statement(s) -> 
+	ignore (visitCilStmt nrv s) 
+    | Assume(e) -> ignore (visitCilExpr nrv e) 
+  ) path ;
+  
   let variables = ref StringSet.empty in 
   let nv = new noteVarVisitor variables in 
   List.iter (fun step -> match step with
     | Statement(s) -> ignore (visitCilStmt nv s) 
     | Assume(e) -> ignore (visitCilExpr nv e) 
-  ) path ; 
+  ) path ;
+ 
   let new_register_file = StringSet.fold (fun variable_name state ->
     let new_value = Lval(Var(makeVarinfo false ("_" ^ variable_name) 
       (TVoid [])),NoOffset) in
     symbolic_variable_state_update state variable_name new_value 
   ) !variables state.register_file in 
-  let state = { state with register_file = new_register_file } in 
+
+  let new_record_register_file = List.fold_right (fun (record : Cil.exp) (state : symbolic_record_state) ->
+     match record with
+      | Lval(lhost,Field(f,o)) -> 
+        match lhost with
+	| Var(va) ->
+        let new_value = Lval(Var(makeVarinfo false ("_" ^ va.vname) 
+        (TVoid [])),NoOffset) in
+    	symbolic_record_state_update state va.vname f.fname new_value
+  )!records state.record_register_file in 
+  
+  let state = { state with register_file = new_register_file; record_register_file = new_record_register_file} in 
 
   (*
    * Now we walk down every step in the path, handling assignment
@@ -402,17 +470,18 @@ let symbolic_execution
   let final_state = List.fold_left (fun state step ->
     match step with
     | Assume(e) -> (* recall that we get these from "if" statements. *)
-      let evaluated_e = symbolic_variable_state_substitute 
-        state.register_file e in
+      let evaluated_e = symbolic_variable_state_substitute
+        state.register_file state.record_register_file e in
       { state with assumptions = evaluated_e :: state.assumptions} 
     | Statement(s) -> begin
+      debug "\nTHe statements are %s\n" (Pretty.sprint ~width:80 (dn_stmt () s)); 
       match s.skind with
       | Instr(il) -> 
         List.fold_left (fun state instr ->
           match instr with
           | Set((Var(va),NoOffset),rhs,_) -> 
             let evaluated_rhs = symbolic_variable_state_substitute 
-              state.register_file rhs 
+              state.register_file state.record_register_file rhs 
             in 
             let new_register_file = symbolic_variable_state_update 
               state.register_file va.vname evaluated_rhs in
@@ -420,15 +489,13 @@ let symbolic_execution
           | Set((Mem(address),_),rhs,_) ->
             (* Possible FIXME: cannot handle memory accesses like *p *) state 
           | Set((lhost ,Field(f,o)),rhs,_) -> 
-            begin
+          begin
 	    match lhost with
-            |Var(va) -> 
-              let evaluated_rhs = symbolic_variable_state_substitute 
-              state.register_file rhs 
+            |Var(va) ->
+              let evaluated_rhs = symbolic_variable_state_substitute state.register_file state.record_register_file rhs
             in 
-            let new_register_file = symbolic_variable_state_update 
-              state.register_file va.vname evaluated_rhs in
-            { state with register_file = new_register_file } 
+            let new_record_register_file = symbolic_record_state_update state.record_register_file va.vname f.fname evaluated_rhs in
+            { state with record_register_file = new_record_register_file } 
             end
             (* Possible FIXME: cannot handle field accesses like e.fld *) 
           | Set((_,Index(i,o)),rhs,_) -> 
@@ -487,15 +554,9 @@ let solve_constraints
       Hashtbl.find symbol_ht var_name
     with _ -> begin
       let sym = mk_string_symbol ctx var_name in
-      match var_type with
-	|TFloat(kind, attributes) ->	
-	  let ast = mk_const ctx sym real_sort in 
-          Hashtbl.replace symbol_ht var_name ast ;
-          ast
-	|_->
-	  let ast = mk_const ctx sym int_sort in 
-          Hashtbl.replace symbol_ht var_name ast ;
-	  mk_const ctx sym real_sort
+      let ast = mk_const ctx sym int_sort in 
+      Hashtbl.replace symbol_ht var_name ast ;
+      mk_const ctx sym int_sort
 end	
   in 
   (* In Z3, boolean-valued and integer-valued expressions are different
@@ -517,12 +578,10 @@ end
   let rec exp_to_ast (exp : Cil.exp) : Z3.ast = match exp with
     | Const(CInt64(i,_,_)) -> 
       (* Possible FIXME: large numbers are not handled *) 
-let i = Int64.to_int i in 
+      let i = Int64.to_int i in 
       Z3.mk_int ctx i int_sort 
     | Const(CReal(value, fkind, string_rep)) ->
-	let multiplier  = 10000.0
-	in mk_real ctx (int_of_float (value*.multiplier)) (int_of_float multiplier)
-	
+	undefined_ast	
     | Const(CChr(c)) -> 
       (* Possible FIXME: characters are justed treated as integers *) 
       let i = Char.code c in
@@ -532,12 +591,36 @@ let i = Int64.to_int i in
       (* Possible FIXME: reals, enums, strings, etc., are not handled *) 
       undefined_ast
 
-    | Lval(Var(va),NoOffset) -> Printf.printf("********************************");var_to_ast va.vname va.vtype 
+    | Lval(Var(va),NoOffset) -> var_to_ast va.vname va.vtype 
+    | Lval(Var(va), Field(f,o) ) -> 
+       Printf.printf "THE OTHER FORMAT  %s %s %s\n\n\n" f.fname 
+       (Pretty.sprint 8 (dn_type () f.ftype))
+       (Pretty.sprint 8 (dn_type () va.vtype));
+       undefined_ast
 
     | Lval(_) -> 
-      Printf.printf"INCOMMMMINGGGGGGGGGGG";(* Possible FIXME: var.field, *p, a[i], etc., are not handled *) 
-      undefined_ast
-
+     (*begin
+      match lhost with
+      |Var(va) ->
+    let mk_tuple_name = Z3.mk_string_symbol ctx va.vname in 
+    let proj_names_0 = Z3.mk_string_symbol ctx f.fname in 
+    let proj_names = [|proj_names_0|] in 
+    let proj_sorts = [|int_sort|] in 
+    (* Z3_mk_tuple_sort will set mk_tuple_decl and proj_decls *) 
+    let (pair_sort,mk_tuple_decl,proj_decls) = Z3.mk_tuple_sort ctx mk_tuple_name proj_names proj_sorts in 
+sort_to_ast ctx pair_sort;
+     |_ -> undefined_ast
+end*)
+	    (*let field_names = [|mk_string_symbol ctx f.fname|]in
+	    let field_sorts = [|mk_int_sort(ctx)|]in
+	    let field_accessors = [|1;2;3|]in
+	    let type_name = mk_string_symbol ctx "asda" in
+	    let recogniser = mk_string_symbol ctx "b" in
+            mk_datatype ctx type_name recogniser field_names field_sorts field_accessors;
+	   *)
+       Printf.printf "I AM IN HERE  \n\n\n";
+       undefined_ast
+      (* Possible FIXME: var.field, *p, a[i], etc., are not handled *) 
     | UnOp(Neg,e,_) -> mk_unary_minus ctx (exp_to_ast e) 
     | UnOp(LNot,e,_) when is_binop e -> mk_not ctx (exp_to_ast e) 
     | UnOp(LNot,e,_) -> mk_eq ctx (exp_to_ast e) (zero_ast) 
@@ -572,9 +655,9 @@ let i = Int64.to_int i in
 	Printf.printf ("before asserting") ;
       let z3_ast = exp_to_ast cil_exp in 
       
-      (*debug "tigen: asserting %s\n" 
+      debug "tigen: asserting %s\n" 
         (Z3.ast_to_string ctx z3_ast) ; 
-      *)
+      
 	Printf.printf ("before asserting") ;
  
       Z3.assert_cnstr ctx z3_ast ; 
