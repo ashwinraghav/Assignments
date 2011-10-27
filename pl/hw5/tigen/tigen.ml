@@ -347,10 +347,10 @@ let empty_symex_state = {
   assumptions = [] ; 
 } 
 
-  class noteVarVisitor (varset : StringSet.t ref) = object
+  class noteVarVisitor (rec_list : Cil.varinfo list ref) = object
     inherit nopCilVisitor
-    method vvrbl v =
-      varset := StringSet.add v.vname !varset ;
+    method vvrbl v = 
+      rec_list := v::!rec_list ;
       DoChildren
   end
 
@@ -393,24 +393,23 @@ let symbolic_execution
   let records = ref  [] in 
   let nrv = new noteRecordVisitor records in 
   List.iter (fun step -> match step with
-    | Statement(s) -> 
-	ignore (visitCilStmt nrv s) 
+    | Statement(s) -> ignore (visitCilStmt nrv s) 
     | Assume(e) -> ignore (visitCilExpr nrv e) 
   ) path ;
   
-  let variables = ref StringSet.empty in 
+  let variables = ref [] in 
   let nv = new noteVarVisitor variables in 
   List.iter (fun step -> match step with
     | Statement(s) -> ignore (visitCilStmt nv s) 
     | Assume(e) -> ignore (visitCilExpr nv e) 
   ) path ;
  
-  let new_register_file = StringSet.fold (fun variable_name state ->
-    let new_value = Lval(Var(makeVarinfo false ("_" ^ variable_name) 
-      (TVoid [])),NoOffset) in
-    symbolic_variable_state_update state variable_name new_value 
-  ) !variables state.register_file in 
-
+  let new_register_file = List.fold_right (fun (va:Cil.varinfo) (state : symbolic_variable_state) ->
+    let new_value = Lval(Var(makeVarinfo false ("_" ^ va.vname) 
+    (va.vtype)), NoOffset) in
+    symbolic_variable_state_update state va.vname new_value
+  )!variables state.register_file in 
+  
   let new_record_register_file = List.fold_right (fun (record : Cil.exp) (state : symbolic_record_state) ->
      match record with
       | Lval(lhost,Field(f,o)) -> 
@@ -516,10 +515,18 @@ let solve_constraints
       Hashtbl.find symbol_ht var_name
     with _ -> begin
       let sym = mk_string_symbol ctx var_name in
-      let ast = mk_const ctx sym int_sort in 
-      Hashtbl.replace symbol_ht var_name ast ;
-      mk_const ctx sym int_sort
-end	
+      match var_type with
+       |TFloat(kind, attributes) ->
+         Printf.printf "Its all in TFLOAT&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& %s\n" var_name; 
+         let ast = mk_const ctx sym real_sort in 
+         Hashtbl.replace symbol_ht var_name ast ;
+         ast
+       |_->
+         Printf.printf "Its all in RANDOMTYPE&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& %s\n" var_name; 
+         let ast = mk_const ctx sym int_sort in 
+         Hashtbl.replace symbol_ht var_name ast ;
+         ast
+      end	
   in 
   (* In Z3, boolean-valued and integer-valued expressions are different
    * (i.e., have different _Sort_s). CIL does not have this issue. *) 
@@ -543,7 +550,8 @@ end
       let i = Int64.to_int i in 
       Z3.mk_int ctx i int_sort 
     | Const(CReal(value, fkind, string_rep)) ->
-	undefined_ast	
+        let multiplier  = 10000.0
+        in mk_real ctx (int_of_float (value*.multiplier)) (int_of_float multiplier)
     | Const(CChr(c)) -> 
       (* Possible FIXME: characters are justed treated as integers *) 
       let i = Char.code c in
@@ -569,25 +577,6 @@ end
       undefined_ast
 
     | Lval(_) -> 
-     (*begin
-      match lhost with
-      |Var(va) ->
-    let mk_tuple_name = Z3.mk_string_symbol ctx va.vname in 
-    let proj_names_0 = Z3.mk_string_symbol ctx f.fname in 
-    let proj_names = [|proj_names_0|] in 
-    let proj_sorts = [|int_sort|] in 
-    (* Z3_mk_tuple_sort will set mk_tuple_decl and proj_decls *) 
-    let (pair_sort,mk_tuple_decl,proj_decls) = Z3.mk_tuple_sort ctx mk_tuple_name proj_names proj_sorts in 
-sort_to_ast ctx pair_sort;
-     |_ -> undefined_ast
-end*)
-	    (*let field_names = [|mk_string_symbol ctx f.fname|]in
-	    let field_sorts = [|mk_int_sort(ctx)|]in
-	    let field_accessors = [|1;2;3|]in
-	    let type_name = mk_string_symbol ctx "asda" in
-	    let recogniser = mk_string_symbol ctx "b" in
-            mk_datatype ctx type_name recogniser field_names field_sorts field_accessors;
-	   *)
        undefined_ast
       (* Possible FIXME: var.field, *p, a[i], etc., are not handled *) 
     | UnOp(Neg,e,_) -> mk_unary_minus ctx (exp_to_ast e) 
