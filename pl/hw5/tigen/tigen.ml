@@ -372,7 +372,7 @@ let symbolic_execution
   : symex_state 
   =
 
-  if true then begin (* enable this for symex debugging *) 
+  if false then begin (* enable this for symex debugging *) 
     debug "\ntigen: symex:\n" ;
     List.iter (fun step -> 
       match step with
@@ -416,7 +416,7 @@ let symbolic_execution
         match lhost with
 	| Var(va) ->
         let new_value = Lval(Var(makeVarinfo false ("_" ^ va.vname ^ "." ^ f.fname) 
-        (TVoid [])),Field(f,o)) in
+        (va.vtype)),Field(f,o)) in
     	symbolic_record_state_update state va.vname f.fname new_value
   )!records state.record_register_file in 
   
@@ -449,7 +449,6 @@ let symbolic_execution
           | Set((Mem(address),_),rhs,_) ->
             (* Possible FIXME: cannot handle memory accesses like *p *) state 
           | Set((lhost ,Field(f,o)),rhs,_) -> 
-	    Printf.printf "\nInside this things da machi!\n\n";
           begin
 	    match lhost with
             |Var(va) ->
@@ -517,12 +516,10 @@ let solve_constraints
       let sym = mk_string_symbol ctx var_name in
       match var_type with
        |TFloat(kind, attributes) ->
-         Printf.printf "Its all in TFLOAT&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& %s\n" var_name; 
          let ast = mk_const ctx sym real_sort in 
          Hashtbl.replace symbol_ht var_name ast ;
          ast
        |_->
-         Printf.printf "Its all in RANDOMTYPE&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& %s\n" var_name; 
          let ast = mk_const ctx sym int_sort in 
          Hashtbl.replace symbol_ht var_name ast ;
          ast
@@ -551,7 +548,7 @@ let solve_constraints
       Z3.mk_int ctx i int_sort 
     | Const(CReal(value, fkind, string_rep)) ->
         let multiplier  = 10000.0
-        in mk_real ctx (int_of_float (value*.multiplier)) (int_of_float multiplier)
+        in mk_real ctx (int_of_float (value *.multiplier)) (int_of_float multiplier)
     | Const(CChr(c)) -> 
       (* Possible FIXME: characters are justed treated as integers *) 
       let i = Char.code c in
@@ -612,9 +609,9 @@ let solve_constraints
     try
       let z3_ast = exp_to_ast cil_exp in 
       
-      debug "tigen: asserting %s\n" 
+      (*debug "tigen: asserting %s\n" 
         (Z3.ast_to_string ctx z3_ast) ; 
-      
+      *)
  
       Z3.assert_cnstr ctx z3_ast ; 
     with _ -> begin  
