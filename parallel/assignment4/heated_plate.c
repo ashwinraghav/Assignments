@@ -1,5 +1,5 @@
 // This program simulates the flow of heat through a two-dimensional plate.
-// The number of grid cells used to model the plate as well as the number of
+asd// The number of grid cells used to model the plate as well as the number of
 //  iterations to simulate can be specified on the command-line as follows:
 //  ./heated_plate_sequential <columns> <rows> <iterations>
 // For example, to execute with a 500 x 500 grid for 250 iterations, use:
