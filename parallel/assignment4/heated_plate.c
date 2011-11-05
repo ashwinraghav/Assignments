@@ -31,55 +31,34 @@ void compute (float ***cells, int iterations);
 	
 int nrank, size, nprocs, rows_per_proc, cols_per_proc, num_rows, num_cols;
 
-bool handles_top_boundary(){
-	if(nrank < (int)sqrt (nprocs))
-	return true;
+bool contains_top_boundary(){
+	if(nrank < ((int)sqrt(nprocs)))	return true;
 	return false;
 }
 
-bool handles_left_boundary(){
-	if((nrank % (int)sqrt(nprocs)) == 0)
-	return true;
-	return false;
+bool contains_left_boundary(){
+	return((nrank % ((int)sqrt(nprocs))) == 0);
 }
 
-bool handles_bottom_boundary(){
-	if (nrank >= (nprocs - (int)sqrt(nprocs)))
-	return true;
-	return false;
+bool contains_bottom_boundary(){
+	return (nrank >= (nprocs - (int)sqrt(nprocs)));
 }
 
-bool handles_right_boundary(){
-	if (((nrank +1) % (int)sqrt(nprocs)) == 0);
-	return true;
-	return false;
+bool contains_right_boundary(){
+	return (((nrank +1) % ((int)sqrt(nprocs))) == 0);
 }
 
 void set_immutable_boundaries(float ***cells){
 	int x, y;
-	/*if(handles_top_boundary){
-		for (x = 0; x < cols_per_proc; x++) cells[0][0][x] = cells[1][0][x] = TOP_BOUNDARY_VALUE;
-	}
-	if(handles_left_boundary){
-		for (y = 0; y < rows_per_proc; y++) cells[0][y][0] = cells[1][y][0] = LEFT_BOUNDARY_VALUE;
-	}
-	if(handles_bottom_boundary){
-		for (x = 0; x < cols_per_proc; x++) cells[0][num_rows + 1][x] = cells[1][num_rows + 1][x] = BOTTOM_BOUNDARY_VALUE;
-	}
-	if(handles_right_boundary){
-		for (y = 0; y < rows_per_proc; y++) cells[0][y][num_cols + 1] = cells[1][y][num_cols + 1] = RIGHT_BOUNDARY_VALUE;
-	}*/
 	
-	if(nrank < (int)sqrt (nprocs))
+	if(contains_top_boundary())
 		for (x = 0; x < cols_per_proc; x++) cells[0][0][x] = cells[1][0][x] = TOP_BOUNDARY_VALUE;
-
-	if((nrank % (int)sqrt(nprocs)) == 0)
+	if(contains_left_boundary())
 		for (y = 0; y < rows_per_proc; y++) cells[0][y][0] = cells[1][y][0] = LEFT_BOUNDARY_VALUE;
 
-	if (nrank >= ((int)nprocs - sqrt(nprocs)))
+	if (contains_bottom_boundary())
 		for (x = 0; x < cols_per_proc; x++) cells[0][cols_per_proc - 1][x] = cells[1][rows_per_proc - 1][x] = BOTTOM_BOUNDARY_VALUE;
-
-	if (((nrank +1) % (int)sqrt(nprocs)) == 0)
+	if (contains_right_boundary())
 		for (y = 0; y < rows_per_proc; y++) cells[0][y][cols_per_proc - 1] = cells[1][y][cols_per_proc - 1] = RIGHT_BOUNDARY_VALUE;
 
 }
@@ -90,63 +69,25 @@ void set_rows_cols_per_proc(){
 }
 
 void allocate_grid(float ***cells){
-	/*if(handles_top_boundary){
-		rows_per_proc+=1;
-	}
-	else if(handles_bottom_boundary){
-		rows_per_proc+=1;
-	}
-	if(handles_left_boundary){
-		cols_per_proc+=1;
-	}else if(handles_right_boundary){
-		cols_per_proc+=1;
-	}*/
-
-	if(nrank < (int)sqrt (nprocs))
-		rows_per_proc+=1;
-
-	if((nrank % (int)sqrt(nprocs)) == 0)
-		cols_per_proc+=1;
-
-	if (nrank >= ((int)nprocs - sqrt(nprocs)))
-		rows_per_proc+=1;
-
-	if (((nrank +1) % (int)sqrt(nprocs)) == 0)
-		cols_per_proc+=1;
-
-//printf("no of rows and cols is %d, %d", rows_per_proc, cols_per_proc);
-	cells[0] = allocate_cells(cols_per_proc, rows_per_proc);
-	cells[1] = allocate_cells(cols_per_proc, rows_per_proc);
+	cells[0] = allocate_cells(cols_per_proc + 2 , rows_per_proc + 2);
+	cells[1] = allocate_cells(cols_per_proc + 2 , rows_per_proc + 2);
 }
 
 void initialize_cells(float **cells) {
-	//why does rows per sec need -1. Check this
-	int x, y, x_start = 0, y_start = 0, x_end = rows_per_proc -1 , y_end = cols_per_proc -1;
-	if(nrank < (int)sqrt (nprocs))
+	int x, y, x_start = 0, y_start = 0, x_end = rows_per_proc , y_end = cols_per_proc;
+
+	if(contains_top_boundary())
 		y_start=1;
 
-	if((nrank % (int)sqrt(nprocs)) == 0)
+	if(contains_left_boundary())
 		x_start=1;
 
-	if (nrank >= ((int)nprocs - sqrt(nprocs)))
+	if (contains_bottom_boundary())
 		y_end-=1;
 
-	if (((nrank +1) % (int)sqrt(nprocs)) == 0)
+	if (contains_right_boundary())
 		x_end-=1;
 
-	/*if(handles_top_boundary){
-		y_start=1;
-	}
-	if(handles_left_boundary){
-		x_start=1;
-	}
-	if(handles_bottom_boundary){
-		y_end-=1;
-	}
-	if(handles_right_boundary){
-		x_end-=1;
-	}
-*/
 	for (y = y_start; y < y_end; y++) {
 		for (x = x_start; x < x_end; x++) {
 			cells[y][x] = INITIAL_CELL_VALUE;
@@ -155,7 +96,6 @@ void initialize_cells(float **cells) {
 }
 
 int main(int argc, char **argv) {
-
 	MPI_Init( &argc, &argv );
 	MPI_Comm_size( MPI_COMM_WORLD, &nprocs );
 	MPI_Comm_rank( MPI_COMM_WORLD, &nrank );
@@ -164,30 +104,17 @@ int main(int argc, char **argv) {
 	num_cols = (argc > 1) ? atoi(argv[1]) : 1000;
 	num_rows = (argc > 2) ? atoi(argv[2]) : 1000;
 	int iterations = (argc > 3) ? atoi(argv[3]) : 100;
-		
-	set_rows_cols_per_proc();
-
-/*	if(nrank < (int)sqrt (nprocs))
-	printf ("Rank %d handles topi\n", nrank);
-
-	if((nrank % (int)sqrt(nprocs)) == 0)
-	printf ("Rank %d handles left\n", nrank);
-
-	if (nrank >= ((int)nprocs - sqrt(nprocs)))
-	printf ("Rank %d handles bottom\n", nrank);
-
-	if (((nrank +1) % (int)sqrt(nprocs)) == 0)
-	printf ("Rank %d handles right\n", nrank);
-*/
 	//printf("Grid: %dx%d, Iterations: %d\n", num_cols, num_rows, iterations);
-	
 	float **cells[2];
+	
+	set_rows_cols_per_proc();
 	allocate_grid(cells);
 	initialize_cells(cells[0]);
 	initialize_cells(cells[1]);
-printf("no of rows and cols is %d, %d for rank %d", rows_per_proc, cols_per_proc, nrank);
-
 	set_immutable_boundaries(cells);
+	//printf("no of rows and cols is %d, %d for rank %d", rows_per_proc, cols_per_proc, nrank);
+
+
 	compute(cells, iterations);
 	// Output a snapshot of the final state of the plate
 	int final_cells = (iterations % 2 == 0) ? 0 : 1;
@@ -201,10 +128,79 @@ printf("no of rows and cols is %d, %d for rank %d", rows_per_proc, cols_per_proc
 	return 0;
 }
 
+void send_bottom_row(float ***cells, int next_cells_index, int i){
+	MPI_Status status;
+	MPI_Request request;
+	if (!contains_bottom_boundary()){
+		MPI_Isend((void*)cells[next_cells_index][rows_per_proc], cols_per_proc -1, MPI_FLOAT, nrank + (int)sqrt(nprocs), i-1, MPI_COMM_WORLD, &request);
+	}	
+}
+void receive_top_row(float ***cells, int next_cells_index, int i){
+	MPI_Status status;
+	MPI_Request request;
+	if(!contains_top_boundary()){
+		MPI_Recv(cells[next_cells_index][0], cols_per_proc -1, MPI_FLOAT, nrank - sqrt(nprocs), i-1, MPI_COMM_WORLD, &status);
+	}
+}
+
+void send_top_row(float ***cells, int next_cells_index, int i){
+	MPI_Status status;
+	MPI_Request request;
+	if(!contains_top_boundary()){
+		MPI_Isend(cells[next_cells_index][0], cols_per_proc -1, MPI_FLOAT, nrank - (int)sqrt(nprocs), i -1 , MPI_COMM_WORLD, &request);
+	}
+}
+
+void receive_bottom_row(float ***cells, int next_cells_index, int i){
+	MPI_Status status;
+	MPI_Request request;
+	if (!contains_bottom_boundary()){
+		MPI_Recv(cells[next_cells_index][rows_per_proc + 1], cols_per_proc -1, MPI_FLOAT, nrank + sqrt(nprocs), i -1, MPI_COMM_WORLD, &status);
+	}
+}
+
+void send_right_column(float ***cells, int next_cells_index, int i, MPI_Datatype new_type){
+	MPI_Status status;
+	MPI_Request request;
+	if (!contains_right_boundary()){
+		MPI_Isend(&cells[next_cells_index][0][cols_per_proc], cols_per_proc - 1, new_type, nrank + 1, i - 1 , MPI_COMM_WORLD, &request);
+	}
+}
+
+void create_column_vector_type(MPI_Datatype *new_type){
+	MPI_Type_vector(rows_per_proc, 1, sqrt(nprocs), MPI_FLOAT, new_type);
+}
+
+
 void compute (float ***cells, int iterations){
 	int cur_cells_index = 0, next_cells_index = 1;
 	int x,y,i;	
-	for (i = 0; i < iterations; i++) {
+	int msg_id;
+	char buff[32];
+
+	MPI_Datatype new_type;
+	create_column_vector_type(&new_type);
+
+	for (i = 1; i <= iterations; i++) {
+		send_bottom_row(cells, next_cells_index, i);
+		send_top_row(cells, next_cells_index, i);
+		receive_top_row(cells, next_cells_index, i);
+		receive_bottom_row(cells, next_cells_index, i);
+		//send_right_column(cells, next_cells_index, i, new_type);
+		//send_left_column();
+
+
+		/*
+		   top if(nrank < (int)sqrt (nprocs))
+		   if((nrank % (int)sqrt(nprocs)) == 0)
+			printf ("Rank %d handles left\n", nrank);
+
+		if (nrank >= ((int)nprocs - sqrt(nprocs)))
+			printf ("Rank %d handles bottom\n", nrank);
+
+		if (((nrank +1) % (int)sqrt(nprocs)) == 0)
+			printf ("Rank %d handles right\n", nrank);
+*/
 		//Check this why is it -2
 		for (y = 1; y <= rows_per_proc - 2; y++) {
 			for (x = 1; x <= cols_per_proc - 1; x++) {
@@ -221,7 +217,7 @@ void compute (float ***cells, int iterations){
 		next_cells_index = !cur_cells_index;
 
 		// Print the current progress
-		printf("Iteration: %d / %d\n", i + 1, iterations);
+	//	printf("Iteration: %d / %d\n", i + 1, iterations);
 	}
 
 }
