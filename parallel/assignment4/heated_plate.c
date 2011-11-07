@@ -261,7 +261,7 @@ void compute (float ***cells, int iterations){
 
 		for (y = 1; y <= rows_per_proc; y++) {
 			for (x = 1; x <= cols_per_proc; x++) {
-				for(j=0;j<4;j++){
+				for(j=0;j<1;j++){
 					cells[next_cells_index][y][x] = (cells[cur_cells_index][y][x - 1]  +
 							cells[cur_cells_index][y][x + 1]  +
 							cells[cur_cells_index][y - 1][x]  +
