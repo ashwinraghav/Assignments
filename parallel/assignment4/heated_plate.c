@@ -29,7 +29,7 @@ float **allocate_cells(int n_x, int n_y);
 void die(const char *error);
 void compute (float ***cells, int iterations);
 	
-int nrank, size, nprocs, rows_per_proc, cols_per_proc, num_rows, num_cols;
+int nrank, size, nprocs, rows_per_proc, cols_per_proc, num_rows, num_cols, iterations;
 
 bool contains_top_boundary(){
 	if(nrank < ((int)sqrt(nprocs)))	return true;
@@ -95,15 +95,47 @@ void initialize_cells(float **cells) {
 	}
 }
 
+void collate_for_display(float ***cells, float **final_cells){
+	int i, j, k;
+	for(k=0; k < nprocs; k++){
+		for(i=0; i < rows_per_proc; i++){
+			for (j=0;j<cols_per_proc;j++){
+				int actual_row = i + (rows_per_proc * (int)(k/sqrt(nprocs)));
+				int actual_col = j + (cols_per_proc * (int)(k/sqrt(nprocs)));
+				// change final_cells[0][0] = cells[k][i][j];
+			}
+		}
+	} 
+}
+
+void gather_all_cells(float ***cells, float **cells_to_render){
+	int i;
+	MPI_Status status;
+	for (i = 0; i < nprocs; i++){
+		MPI_Recv(cells[0], cols_per_proc, MPI_FLOAT, i, iterations + 1, MPI_COMM_WORLD, &status);
+	}
+	collate_for_display(cells, cells_to_render);
+}
+
+void set_immutable_boundaries_for_final_cells(float ***cells, int num_rows, int num_cols){
+        int x, y, i;
+        for (x = 1; x <= num_cols; x++) cells[0][0][x] = TOP_BOUNDARY_VALUE;
+        for (x = 1; x <= num_cols; x++) cells[0][num_rows + 1][x] = BOTTOM_BOUNDARY_VALUE;
+        for (y = 1; y <= num_rows; y++) cells[0][y][0] = LEFT_BOUNDARY_VALUE;
+        for (y = 1; y <= num_rows; y++) cells[0][y][num_cols + 1] = RIGHT_BOUNDARY_VALUE;
+}
+
 int main(int argc, char **argv) {
 	MPI_Init( &argc, &argv );
 	MPI_Comm_size( MPI_COMM_WORLD, &nprocs );
 	MPI_Comm_rank( MPI_COMM_WORLD, &nrank );
-	time_t start_time = time(NULL);
-
+	time_t start_time;
+	if (nrank ==0){
+		start_time = time(NULL);
+	}
 	num_cols = (argc > 1) ? atoi(argv[1]) : 1000;
 	num_rows = (argc > 2) ? atoi(argv[2]) : 1000;
-	int iterations = (argc > 3) ? atoi(argv[3]) : 100;
+	iterations = (argc > 3) ? atoi(argv[3]) : 1000;
 	//printf("Grid: %dx%d, Iterations: %d\n", num_cols, num_rows, iterations);
 	float **cells[2];
 	
@@ -116,20 +148,28 @@ int main(int argc, char **argv) {
 
 
 	compute(cells, iterations);
-	// Output a snapshot of the final state of the plate
-	int final_cells = (iterations % 2 == 0) ? 0 : 1;
-//	create_snapshot(cells[final_cells], num_cols, num_rows, iterations);
 
-	// Compute and output the execution time
-	time_t end_time = time(NULL);
-	printf("\nExecution time: %d seconds\n", (int) difftime(end_time, start_time));
+	if(nrank==0){
+		int i;
+		float **gathered_cells[nprocs];
+		float **cells_to_render[1];
+		cells_to_render[0] = allocate_cells(num_cols+2, num_rows+2);
+		for(i = 0; i < nprocs ; i++){gathered_cells[i] = allocate_cells(num_cols+2, num_rows+2);}
+		set_immutable_boundaries_for_final_cells(cells_to_render, num_rows, num_cols);
+		gather_all_cells(gathered_cells, cells_to_render[0]);
+		// Output a snapshot of the final state of the plate
+		create_snapshot(cells_to_render[0], num_cols, num_rows, iterations);
+		// Compute and output the execution time
+		time_t end_time = time(NULL);
+		printf("\nExecution time: %d seconds\n", (int) difftime(end_time, start_time));
+	}
+
 	MPI_Finalize();
 
 	return 0;
 }
 
 void send_bottom_row(float ***cells, int next_cells_index, int i){
-	MPI_Status status;
 	MPI_Request request;
 	if (!contains_bottom_boundary()){
 		MPI_Isend((void*)cells[next_cells_index][rows_per_proc], cols_per_proc -1, MPI_FLOAT, nrank + (int)sqrt(nprocs), i-1, MPI_COMM_WORLD, &request);
@@ -137,14 +177,12 @@ void send_bottom_row(float ***cells, int next_cells_index, int i){
 }
 void receive_top_row(float ***cells, int next_cells_index, int i){
 	MPI_Status status;
-	MPI_Request request;
 	if(!contains_top_boundary()){
 		MPI_Recv(cells[next_cells_index][0], cols_per_proc -1, MPI_FLOAT, nrank - sqrt(nprocs), i-1, MPI_COMM_WORLD, &status);
 	}
 }
 
 void send_top_row(float ***cells, int next_cells_index, int i){
-	MPI_Status status;
 	MPI_Request request;
 	if(!contains_top_boundary()){
 		MPI_Isend(cells[next_cells_index][0], cols_per_proc -1, MPI_FLOAT, nrank - (int)sqrt(nprocs), i -1 , MPI_COMM_WORLD, &request);
@@ -153,30 +191,59 @@ void send_top_row(float ***cells, int next_cells_index, int i){
 
 void receive_bottom_row(float ***cells, int next_cells_index, int i){
 	MPI_Status status;
-	MPI_Request request;
 	if (!contains_bottom_boundary()){
 		MPI_Recv(cells[next_cells_index][rows_per_proc + 1], cols_per_proc -1, MPI_FLOAT, nrank + sqrt(nprocs), i -1, MPI_COMM_WORLD, &status);
 	}
 }
 
 void send_right_column(float ***cells, int next_cells_index, int i, MPI_Datatype new_type){
+	MPI_Request request;
+	if (!contains_right_boundary()){
+		MPI_Isend(cells[next_cells_index][0] + cols_per_proc, 1, new_type, nrank + 1, i - 1 , MPI_COMM_WORLD, &request);
+	}
+}
+
+void receive_left_column(float ***cells, int next_cells_index, int i, MPI_Datatype new_type){
+	MPI_Status status;
+	if (!contains_left_boundary()){
+		MPI_Recv(cells[next_cells_index][0], 1, new_type, nrank - 1, i - 1, MPI_COMM_WORLD, &status);
+	}
+}
+
+void send_left_column(float ***cells, int next_cells_index, int i, MPI_Datatype new_type){
+	MPI_Request request;
+	if (!contains_left_boundary()){
+		MPI_Isend(cells[next_cells_index][0], 1, new_type, nrank - 1, i - 1 , MPI_COMM_WORLD, &request);
+	}
+}
+
+void receive_right_column(float ***cells, int next_cells_index, int i, MPI_Datatype new_type){
 	MPI_Status status;
 	MPI_Request request;
 	if (!contains_right_boundary()){
-		MPI_Isend(&cells[next_cells_index][0][cols_per_proc], cols_per_proc - 1, new_type, nrank + 1, i - 1 , MPI_COMM_WORLD, &request);
+		MPI_Recv(cells[next_cells_index][0] + cols_per_proc + 1, 1, new_type, nrank + 1, i - 1, MPI_COMM_WORLD, &status);
 	}
+}
+
+void send_all_rows_to_proc_0(float ***cells, int next_cells_index){
+	printf("sending from %d\n", nrank);
+	MPI_Request request;
+	MPI_Isend(cells[next_cells_index][1], cols_per_proc, MPI_FLOAT, 0, iterations + 1, MPI_COMM_WORLD, &request);
 }
 
 void create_column_vector_type(MPI_Datatype *new_type){
 	MPI_Type_vector(rows_per_proc, 1, sqrt(nprocs), MPI_FLOAT, new_type);
+ 	MPI_Type_commit(new_type);
+}
+
+void free_column_type_vector(MPI_Datatype *new_type){
+	MPI_Type_free(new_type);
 }
 
 
 void compute (float ***cells, int iterations){
 	int cur_cells_index = 0, next_cells_index = 1;
-	int x,y,i;	
-	int msg_id;
-	char buff[32];
+	int x,y,i,j;	
 
 	MPI_Datatype new_type;
 	create_column_vector_type(&new_type);
@@ -184,31 +251,22 @@ void compute (float ***cells, int iterations){
 	for (i = 1; i <= iterations; i++) {
 		send_bottom_row(cells, next_cells_index, i);
 		send_top_row(cells, next_cells_index, i);
+		send_right_column(cells, next_cells_index, i, new_type);
+		send_left_column(cells, next_cells_index, i, new_type);
 		receive_top_row(cells, next_cells_index, i);
 		receive_bottom_row(cells, next_cells_index, i);
-		//send_right_column(cells, next_cells_index, i, new_type);
-		//send_left_column();
+		receive_left_column(cells, next_cells_index, i, new_type);
+		receive_right_column(cells, next_cells_index, i, new_type);
 
 
-		/*
-		   top if(nrank < (int)sqrt (nprocs))
-		   if((nrank % (int)sqrt(nprocs)) == 0)
-			printf ("Rank %d handles left\n", nrank);
-
-		if (nrank >= ((int)nprocs - sqrt(nprocs)))
-			printf ("Rank %d handles bottom\n", nrank);
-
-		if (((nrank +1) % (int)sqrt(nprocs)) == 0)
-			printf ("Rank %d handles right\n", nrank);
-*/
-		//Check this why is it -2
-		for (y = 1; y <= rows_per_proc - 2; y++) {
-			for (x = 1; x <= cols_per_proc - 1; x++) {
-				// The new value of this cell is the average of the old values of this cell's four neighbors
-				cells[next_cells_index][y][x] = (cells[cur_cells_index][y][x - 1]  +
-						cells[cur_cells_index][y][x + 1]  +
-						cells[cur_cells_index][y - 1][x]  +
-						cells[cur_cells_index][y + 1][x]) * 0.25;
+		for (y = 1; y <= rows_per_proc; y++) {
+			for (x = 1; x <= cols_per_proc; x++) {
+				for(j=0;j<4;j++){
+					cells[next_cells_index][y][x] = (cells[cur_cells_index][y][x - 1]  +
+							cells[cur_cells_index][y][x + 1]  +
+							cells[cur_cells_index][y - 1][x]  +
+							cells[cur_cells_index][y + 1][x]) * 0.25;
+				}
 			}
 		}
 
@@ -219,6 +277,8 @@ void compute (float ***cells, int iterations){
 		// Print the current progress
 	//	printf("Iteration: %d / %d\n", i + 1, iterations);
 	}
+	free_column_type_vector(&new_type);
+	send_all_rows_to_proc_0(cells, next_cells_index);
 
 }
 // Allocates and returns a pointer to a 2D array of floats
