@@ -19,7 +19,10 @@
 #define LEFT_BOUNDARY_VALUE 0.0
 #define RIGHT_BOUNDARY_VALUE 100.0
 #define INITIAL_CELL_VALUE 50.0
-
+#define BOTTOM_ROW 1
+#define TOP_ROW 0
+#define RIGHT_COLUMN 1
+#define LEFT_COLUMN 0
 
 // Function prototypes
 void print_cells(float **cells, int n_x, int n_y);
@@ -29,7 +32,7 @@ float **allocate_cells(int n_x, int n_y);
 void die(const char *error);
 void compute (float ***cells, int iterations);
 	
-int nrank, size, nprocs, rows_per_proc, cols_per_proc, num_rows, num_cols, iterations, iters_per_cell;
+int nrank, size, nprocs, rows_per_proc, cols_per_proc, num_rows, num_cols, iterations, iters_per_cell, ghost_count;
 
 bool contains_top_boundary(){
 	if(nrank < ((int)sqrt(nprocs)))	return true;
@@ -52,14 +55,13 @@ void set_immutable_boundaries(float ***cells){
 	int x, y;
 	
 	if(contains_top_boundary())
-		for (x = 0; x < cols_per_proc; x++) cells[0][0][x] = cells[1][0][x] = TOP_BOUNDARY_VALUE;
+		for (x = 0; x < cols_per_proc; x++) cells[0][ghost_count - 1][x] = cells[1][ghost_count - 1][x] = TOP_BOUNDARY_VALUE;
 	if(contains_left_boundary())
-		for (y = 0; y < rows_per_proc; y++) cells[0][y][0] = cells[1][y][0] = LEFT_BOUNDARY_VALUE;
-
+		for (y = 0; y < rows_per_proc; y++) cells[0][y][ghost_count - 1] = cells[1][ghost_count - 1][0] = LEFT_BOUNDARY_VALUE;
 	if (contains_bottom_boundary())
-		for (x = 0; x < cols_per_proc; x++) cells[0][cols_per_proc - 1][x] = cells[1][rows_per_proc - 1][x] = BOTTOM_BOUNDARY_VALUE;
+		for (x = 0; x < cols_per_proc; x++) cells[0][ghost_count + rows_per_proc][x] = cells[1][ghost_count + rows_per_proc][x] = BOTTOM_BOUNDARY_VALUE;
 	if (contains_right_boundary())
-		for (y = 0; y < rows_per_proc; y++) cells[0][y][cols_per_proc - 1] = cells[1][y][cols_per_proc - 1] = RIGHT_BOUNDARY_VALUE;
+		for (y = 0; y < rows_per_proc; y++) cells[0][y][ghost_count - 1 + cols_per_proc - 1] = cells[1][y][ghost_count - 1 +cols_per_proc - 1] = RIGHT_BOUNDARY_VALUE;
 
 }
 
@@ -69,18 +71,18 @@ void set_rows_cols_per_proc(){
 }
 
 void allocate_grid(float ***cells){
-	cells[0] = allocate_cells(cols_per_proc + 2 , rows_per_proc + 2);
-	cells[1] = allocate_cells(cols_per_proc + 2 , rows_per_proc + 2);
+	cells[0] = allocate_cells(cols_per_proc + 2 * ghost_count, rows_per_proc + 2 * ghost_count);
+	cells[1] = allocate_cells(cols_per_proc + 2 * ghost_count, rows_per_proc + 2 * ghost_count);
 }
 
 void initialize_cells(float **cells) {
-	int x, y, x_start = 0, y_start = 0, x_end = rows_per_proc , y_end = cols_per_proc;
+	int x, y, x_start = ghost_count - 1 , y_start = ghost_count - 1, x_end = rows_per_proc + ghost_count - 1 , y_end = cols_per_proc + ghost_count - 1;
 
 	if(contains_top_boundary())
-		y_start=1;
+		y_start+=1;
 
 	if(contains_left_boundary())
-		x_start=1;
+		x_start+=1;
 
 	if (contains_bottom_boundary())
 		y_end-=1;
@@ -137,6 +139,7 @@ int main(int argc, char **argv) {
 	num_rows = (argc > 2) ? atoi(argv[2]) : 1000;
 	iterations = (argc > 3) ? atoi(argv[3]) : 1000;
 	iters_per_cell = (argc > 4) ? atoi(argv[4]) : 1;
+	ghost_count = (argc > 5) ? atoi(argv[5]) : 1;
 	//printf("Grid: %dx%d, Iterations: %d\n", num_cols, num_rows, iterations);
 	float **cells[2];
 	
@@ -170,70 +173,37 @@ int main(int argc, char **argv) {
 	return 0;
 }
 
-void send_bottom_row(float ***cells, int next_cells_index, int i){
+void send_row(float ***cells, int next_cells_index, int i, int top_or_bottom){
 	MPI_Request request;
-	if (!contains_bottom_boundary()){
-		MPI_Isend((void*)cells[next_cells_index][rows_per_proc], cols_per_proc -1, MPI_FLOAT, nrank + (int)sqrt(nprocs), i-1, MPI_COMM_WORLD, &request);
-	}	
+	int receiver_rank = (top_or_bottom == 1) ? (nrank + (int)sqrt(nprocs)) : (nrank - (int) sqrt(nprocs));
+	MPI_Isend((void*)cells[next_cells_index][(ghost_count - 1 + rows_per_proc) * top_or_bottom], cols_per_proc + 2 * ghost_count, MPI_FLOAT, receiver_rank, i-1, MPI_COMM_WORLD, &request);
 }
-void receive_top_row(float ***cells, int next_cells_index, int i){
+
+void send_column(float ***cells, int next_cells_index, int i, MPI_Datatype new_type, int left_or_right){
+	MPI_Request request;
+	int receiver_rank = (left_or_right == 1) ? (nrank + 1) : (nrank - 1);
+	MPI_Isend(cells[next_cells_index][0] + (ghost_count - 1 + cols_per_proc) * left_or_right, 1, new_type, receiver_rank, i - 1 , MPI_COMM_WORLD, &request);
+}
+
+void receive_row(float ***cells, int next_cells_index, int i, int top_or_bottom){
 	MPI_Status status;
-	if(!contains_top_boundary()){
-		MPI_Recv(cells[next_cells_index][0], cols_per_proc -1, MPI_FLOAT, nrank - sqrt(nprocs), i-1, MPI_COMM_WORLD, &status);
-	}
+	int sender_rank = (top_or_bottom == 1) ? (nrank + (int)sqrt(nprocs)) : (nrank - (int) sqrt(nprocs));
+	MPI_Recv(cells[next_cells_index][top_or_bottom * (rows_per_proc + ghost_count)], cols_per_proc + 2 * ghost_count, MPI_FLOAT, sender_rank, i-1, MPI_COMM_WORLD, &status);
 }
 
-void send_top_row(float ***cells, int next_cells_index, int i){
-	MPI_Request request;
-	if(!contains_top_boundary()){
-		MPI_Isend(cells[next_cells_index][0], cols_per_proc -1, MPI_FLOAT, nrank - (int)sqrt(nprocs), i -1 , MPI_COMM_WORLD, &request);
-	}
-}
-
-void receive_bottom_row(float ***cells, int next_cells_index, int i){
+void receive_column(float ***cells, int next_cells_index, int i, MPI_Datatype new_type, int left_or_right){
 	MPI_Status status;
-	if (!contains_bottom_boundary()){
-		MPI_Recv(cells[next_cells_index][rows_per_proc + 1], cols_per_proc -1, MPI_FLOAT, nrank + sqrt(nprocs), i -1, MPI_COMM_WORLD, &status);
-	}
-}
-
-void send_right_column(float ***cells, int next_cells_index, int i, MPI_Datatype new_type){
-	MPI_Request request;
-	if (!contains_right_boundary()){
-		MPI_Isend(cells[next_cells_index][0] + cols_per_proc, 1, new_type, nrank + 1, i - 1 , MPI_COMM_WORLD, &request);
-	}
-}
-
-void receive_left_column(float ***cells, int next_cells_index, int i, MPI_Datatype new_type){
-	MPI_Status status;
-	if (!contains_left_boundary()){
-		MPI_Recv(cells[next_cells_index][0], 1, new_type, nrank - 1, i - 1, MPI_COMM_WORLD, &status);
-	}
-}
-
-void send_left_column(float ***cells, int next_cells_index, int i, MPI_Datatype new_type){
-	MPI_Request request;
-	if (!contains_left_boundary()){
-		MPI_Isend(cells[next_cells_index][0], 1, new_type, nrank - 1, i - 1 , MPI_COMM_WORLD, &request);
-	}
-}
-
-void receive_right_column(float ***cells, int next_cells_index, int i, MPI_Datatype new_type){
-	MPI_Status status;
-	MPI_Request request;
-	if (!contains_right_boundary()){
-		MPI_Recv(cells[next_cells_index][0] + cols_per_proc + 1, 1, new_type, nrank + 1, i - 1, MPI_COMM_WORLD, &status);
-	}
+	int sender_rank = (left_or_right == 1) ? (nrank + 1) : (nrank - 1);
+	MPI_Recv(cells[next_cells_index][0] + (ghost_count - 1 + cols_per_proc) * left_or_right, 1, new_type, sender_rank, i - 1, MPI_COMM_WORLD, &status);
 }
 
 void send_all_rows_to_proc_0(float ***cells, int next_cells_index){
-	printf("sending from %d\n", nrank);
 	MPI_Request request;
-	MPI_Isend(cells[next_cells_index][1], cols_per_proc, MPI_FLOAT, 0, iterations + 1, MPI_COMM_WORLD, &request);
+	MPI_Isend(cells[next_cells_index][ghost_count], cols_per_proc, MPI_FLOAT, 0, iterations + 1, MPI_COMM_WORLD, &request);
 }
 
 void create_column_vector_type(MPI_Datatype *new_type){
-	MPI_Type_vector(rows_per_proc, 1, sqrt(nprocs), MPI_FLOAT, new_type);
+	MPI_Type_vector(rows_per_proc, ghost_count, sqrt(nprocs), MPI_FLOAT, new_type);
  	MPI_Type_commit(new_type);
 }
 
@@ -250,18 +220,28 @@ void compute (float ***cells, int iterations){
 	create_column_vector_type(&new_type);
 
 	for (i = 1; i <= iterations; i++) {
-		send_bottom_row(cells, next_cells_index, i);
-		send_top_row(cells, next_cells_index, i);
-		send_right_column(cells, next_cells_index, i, new_type);
-		send_left_column(cells, next_cells_index, i, new_type);
-		receive_top_row(cells, next_cells_index, i);
-		receive_bottom_row(cells, next_cells_index, i);
-		receive_left_column(cells, next_cells_index, i, new_type);
-		receive_right_column(cells, next_cells_index, i, new_type);
+		if(!contains_bottom_boundary()){
+			send_row(cells, next_cells_index, i, BOTTOM_ROW);
+			receive_row(cells, next_cells_index, i, BOTTOM_ROW);
+		}
 
+		if(!contains_top_boundary()){
+			send_row(cells, next_cells_index, i, TOP_ROW);
+			receive_row(cells, next_cells_index, i, TOP_ROW);
+		}
 
-		for (y = 1; y <= rows_per_proc; y++) {
-			for (x = 1; x <= cols_per_proc; x++) {
+		if(!contains_right_boundary()){
+			send_column(cells, next_cells_index, i, new_type, RIGHT_COLUMN);
+			receive_column(cells, next_cells_index, i, new_type, RIGHT_COLUMN);
+		}
+
+		if(!contains_left_boundary()){
+			send_column(cells, next_cells_index, i, new_type, LEFT_COLUMN);
+			receive_column(cells, next_cells_index, i, new_type, LEFT_COLUMN);
+		}
+
+		for (y = ghost_count; y < ghost_count + rows_per_proc; y++) {
+			for (x = ghost_count; x < ghost_count + cols_per_proc; x++) {
 				for(j=0;j<iters_per_cell;j++){
 					cells[next_cells_index][y][x] = (cells[cur_cells_index][y][x - 1]  +
 							cells[cur_cells_index][y][x + 1]  +
