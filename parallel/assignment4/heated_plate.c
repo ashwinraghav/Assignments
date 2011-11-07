@@ -29,7 +29,7 @@ float **allocate_cells(int n_x, int n_y);
 void die(const char *error);
 void compute (float ***cells, int iterations);
 	
-int nrank, size, nprocs, rows_per_proc, cols_per_proc, num_rows, num_cols, iterations;
+int nrank, size, nprocs, rows_per_proc, cols_per_proc, num_rows, num_cols, iterations, iters_per_cell;
 
 bool contains_top_boundary(){
 	if(nrank < ((int)sqrt(nprocs)))	return true;
@@ -136,6 +136,7 @@ int main(int argc, char **argv) {
 	num_cols = (argc > 1) ? atoi(argv[1]) : 1000;
 	num_rows = (argc > 2) ? atoi(argv[2]) : 1000;
 	iterations = (argc > 3) ? atoi(argv[3]) : 1000;
+	iters_per_cell = (argc > 4) ? atoi(argv[4]) : 1;
 	//printf("Grid: %dx%d, Iterations: %d\n", num_cols, num_rows, iterations);
 	float **cells[2];
 	
@@ -261,7 +262,7 @@ void compute (float ***cells, int iterations){
 
 		for (y = 1; y <= rows_per_proc; y++) {
 			for (x = 1; x <= cols_per_proc; x++) {
-				for(j=0;j<1;j++){
+				for(j=0;j<iters_per_cell;j++){
 					cells[next_cells_index][y][x] = (cells[cur_cells_index][y][x - 1]  +
 							cells[cur_cells_index][y][x + 1]  +
 							cells[cur_cells_index][y - 1][x]  +
