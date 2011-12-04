@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <math.h>
 #include <cuda.h>
-#define SIZE 16
-#define BLOCK_SIZE 8
-#define ITERATIONS 100
+#define SIZE 8192
+#define BLOCK_SIZE 16
+#define ITERATIONS 10000
 
 #define TOP_BOUNDARY_VALUE 0.0
 #define BOTTOM_BOUNDARY_VALUE 100.0
@@ -45,19 +45,52 @@ void print_matrix(float**u)
 }
 __global__ void jacobi(float *d_u_new,float *d_u)
 {
-	int i = blockIdx.x*blockDim.x + threadIdx.x;
-	int j = blockIdx.y*blockDim.y + threadIdx.y;
+	float p, q, r, s;
+	int tx = threadIdx.x;
+	int ty = threadIdx.y;
+
+	int i = blockIdx.x*blockDim.x + tx;
+	int j = blockIdx.y*blockDim.y + ty;
+
 	int target = i*SIZE+j;
+	__shared__ float shared_cells[BLOCK_SIZE][BLOCK_SIZE];
+	
+	shared_cells[tx][ty] = d_u[target];
+	__syncthreads(); 
+	
 	if((target<SIZE)||(target%SIZE==0)||(target>=SIZE*(SIZE-1))||(target%SIZE==(SIZE-1))){
-	}else{
-		d_u_new[target]=0.25*(
-				//h*h*d_f[i    *SIZE+j     ]+
-				d_u[(i-1)*SIZE+j     ]+
-				d_u[(i+1)*SIZE+j     ]+
-				d_u[i    *SIZE+j-1   ]+
-				d_u[i    *SIZE+j+1   ]);
 	}
-	//d_u_new[i*SIZE+j]=23.3;
+	else
+	{
+		if(tx-1 < 0){
+			p = d_u[(i - 1) * SIZE + j];
+		}
+		else{
+			p = shared_cells[tx - 1][ty];
+		}
+		if(tx+1 == BLOCK_SIZE){
+			q = d_u[(i + 1) * SIZE + j];
+		}
+		else{
+			q = shared_cells[tx + 1][ty];
+		}
+		if(ty-1 < 0){
+			r = d_u[i * SIZE + j - 1];
+		}
+		else{
+			r = shared_cells[tx][ty - 1];
+		}
+		if(ty+1 == BLOCK_SIZE){
+			s = d_u[i * SIZE + j + 1];
+		}
+		else{
+			s = shared_cells[tx][ty + 1];
+		}
+		d_u_new[target] = 0.25 * (p + q + r + s);
+		//d_u_new[target]=0.25*( p + shared_cells[tx + 1][ty] + shared_cells[tx][ty - 1] + shared_cells[tx][ty + 1]);
+	}
+	if((tx > 0) && (tx < BLOCK_SIZE - 1) && (ty > 0) && (ty < BLOCK_SIZE - 1)){
+	}
 }
 
 float **allocate_cells(int num_cols, int num_rows) {
@@ -133,9 +166,9 @@ int main()
 	{
 		for(j=0; j < SIZE; j++){
 			steady_state[i][j] = cells[0][i*SIZE+j];
-			printf("%f ", cells[0][i*SIZE+j]);
+		//	printf("%f ", cells[0][i*SIZE+j]);
 		}
-		printf("\n");
+		//printf("\n");
 	}
 	time_t end_time = time(NULL);
 	printf("\nExecution time: %d seconds\n", (int) difftime(end_time, start_time));
