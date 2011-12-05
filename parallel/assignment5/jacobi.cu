@@ -16,7 +16,7 @@
 #define BOTTOM_BOUNDARY_VALUE 100.0
 #define LEFT_BOUNDARY_VALUE 0.0
 #define RIGHT_BOUNDARY_VALUE 100.0
-#define INITIAL_CELL_VALUE 50.0
+#define INITIAL_CELL_VALUE 100.0
 
 
 // Function prototypes
@@ -25,6 +25,7 @@ void initialize_cells(float **cells, int n_x, int n_y);
 void create_snapshot(float **cells, int n_x, int n_y, int id);
 float **allocate_cells(int n_x, int n_y);
 void die(const char *error);
+float **GPU_perform_jacobi(float ***cells, int num_rows, int num_cols, int iterations);
 
 
 int main(int argc, char **argv) {
@@ -49,7 +50,6 @@ int main(int argc, char **argv) {
 	float **cells[2];
 	cells[0] = allocate_cells(num_cols + 2, num_rows + 2);
 	cells[1] = allocate_cells(num_cols + 2, num_rows + 2);
-	int cur_cells_index = 0, next_cells_index = 1;
 	
 	// Initialize the interior (non-boundary) cells to their initial value.
 	// Note that we only need to initialize the array for the current time
@@ -64,38 +64,11 @@ int main(int argc, char **argv) {
 	for (y = 1; y <= num_rows; y++) cells[0][y][0] = cells[1][y][0] = LEFT_BOUNDARY_VALUE;
 	for (y = 1; y <= num_rows; y++) cells[0][y][num_cols + 1] = cells[1][y][num_cols + 1] = RIGHT_BOUNDARY_VALUE;
 	
+	float **computed_cells = GPU_perform_jacobi(cells, num_rows, num_cols, iterations);
 	// Simulate the heat flow for the specified number of iterations
-	for (i = 0; i < iterations; i++) {
-		// Traverse the plate, computing the new value of each cell
-		for (y = 1; y <= num_rows; y++) {
-			for (x = 1; x <= num_cols; x++) {
-				// The new value of this cell is the average of the old values of this cell's four neighbors
-				cells[next_cells_index][y][x] = (cells[cur_cells_index][y][x - 1]  +
-				                                 cells[cur_cells_index][y][x + 1]  +
-				                                 cells[cur_cells_index][y - 1][x]  +
-				                                 cells[cur_cells_index][y + 1][x]) * 0.25;
-			}
-		}
-		
-		// Swap the two arrays
-		cur_cells_index = next_cells_index;
-		next_cells_index = !cur_cells_index;
-		
-		// Print the current progress
-		printf("Iteration: %d / %d\n", i + 1, iterations);
-	}
-	
 	// Output a snapshot of the final state of the plate
-	int final_cells = (iterations % 2 == 0) ? 0 : 1;
-	create_snapshot(cells[final_cells], num_cols, num_rows, iterations);
-int j;
-	for(i=0;i<=num_rows+1;i++)
-	{
-		for(j=0; j <= num_cols+1; j++){
-			printf("%f ", cells[final_cells][i][j]);
-		}
-		printf("\n");
-	}
+	//int final_cells = (iterations % 2 == 0) ? 0 : 1;
+	//create_snapshot(computed_cells, num_cols, num_rows, iterations);
 
 	// Compute and output the execution time
 	time_t end_time = time(NULL);
@@ -104,7 +77,54 @@ int j;
 	return 0;
 }
 
+__global__ void jacobi_core(float **cells, int num_rows, int num_cols, int iterations, size_t pitch){
+	int i, x, y;
+	int cur_cells_index = 0, next_cells_index = 1;
+	for (i = 0; i < 1; i++) {
+		// Traverse the plate, computing the new value of each cell
+		for (y = 1; y <= num_rows; y++) {
+			float* row = (float*)((char*)cells + y * pitch);
+			for (x = 1; x <= num_cols; x++) {
+				// The new value of this cell is the average of the old values of this cell's four neighbors
+				row[next_cells_index][y][x] = (row[cur_cells_index][y][x - 1]  +
+						row[cur_cells_index][y][x + 1]  +
+						row[cur_cells_index][y - 1][x]  +
+						row[cur_cells_index][y + 1][x]) * 0.25;
+			}
+		}
 
+		// Swap the two arrays
+		cur_cells_index = next_cells_index;
+		next_cells_index = !cur_cells_index;
+
+		}
+
+	/*int iy = threadIdx.y;
+	int ix = threadIdx.x;
+	float* q = ((cells[0] + iy * pitch) + ix);
+	*q = iy*pitch + ix;*/
+}
+void check_error(cudaError e) {
+	if (e != cudaSuccess) {
+		printf("\nCUDA error: %s\n", cudaGetErrorString(e));
+		exit(1);
+	}
+}
+
+float **GPU_perform_jacobi(float ***cells, int num_rows, int num_cols, int iterations){
+	float **cells_GPU;
+	size_t pitch;
+	check_error(cudaMallocPitch((void**)&cells_GPU[0], &pitch, num_cols * sizeof(float), num_rows));
+	cudaMemcpy2D(cells_GPU[0], num_cols*num_rows*sizeof(float), cells[0], pitch, num_cols*sizeof(float), num_rows, cudaMemcpyHostToDevice);
+	//cudaMemcpy2D(cells_GPU[1], num_cols*sizeof(float), cells[1], pitch, num_cols*sizeof(float), num_rows, cudaMemcpyHostToDevice);	
+	
+	jacobi_core <<< 1, 1 >>> (cells_GPU, num_rows, num_cols, iterations, pitch);
+	cudaThreadSynchronize();
+
+	//cudaMemcpy2D(final_cells[0], num_cols*sizeof(float), cells_GPU[0], pitch, num_cols*sizeof(float), num_rows, cudaMemcpyDeviceToHost);	
+	//cudaMemcpy2D(final_cells[1], num_cols*sizeof(float), cells_GPU[1], pitch, num_cols*sizeof(float), num_rows, cudaMemcpyDeviceToHost);	
+	return cells[0];
+}
 // Allocates and returns a pointer to a 2D array of floats
 float **allocate_cells(int num_cols, int num_rows) {
 	float **array = (float **) malloc(num_rows * sizeof(float *));

@@ -1,0 +1,14 @@
+#!/bin/sh
+
+#PBS -q generals
+#PBS -l walltime=00:05:00
+#PBS -l cuda_gpu=1
+#PBS -o output.txt
+#PBS -j oe
+#PBS -m ea
+#PBS -M am2qa@virginia.edu
+ 
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib6
+cd $PBS_O_WORKDIR
+/usr/local/cuda/bin/nvcc test.cu && ./a.out
+
