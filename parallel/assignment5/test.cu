@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <math.h>
 #include <cuda.h>
-#define SIZE 8192
-#define BLOCK_SIZE 64
+#define SIZE 8092
+#define BLOCK_SIZE 16
 #define ITERATIONS 10000
 
 #define TOP_BOUNDARY_VALUE 0.0
@@ -43,7 +43,7 @@ void print_matrix(float**u)
 		printf("\n");
 	}
 }
-__global__ void jacobi(float *x, float *y)
+__global__ void jacobi(float *x, float *y, int iteration)
 {
 	float p, q, r, s, *d_u_new[2];
 	d_u_new[0] = x;
@@ -60,48 +60,49 @@ __global__ void jacobi(float *x, float *y)
 
 	__shared__ float shared_cells[BLOCK_SIZE][BLOCK_SIZE][2];
 	shared_cells[tx][ty][0] = shared_cells[tx][ty][1] = d_u_new[0][target];
-	
 	__syncthreads();
+
 	bool truth =  ((target<SIZE)||(target%SIZE==0)||(target>=SIZE*(SIZE-1))||(target%SIZE==(SIZE-1)));
-	
-	for (k = 0; k < ITERATIONS; k++){
-		if(!truth)
-		{
-			if(tx-1 < 0){
-				p = d_u_new[next_index][(i - 1) * SIZE + j];
-			}
-			else{
-				p = shared_cells[tx - 1][ty][next_index];
-			}
-			if(tx+1 == BLOCK_SIZE){
-				q = d_u_new[next_index][(i + 1) * SIZE + j];
-			}
-			else{
-				q = shared_cells[tx + 1][ty][next_index];
-			}
-			if(ty-1 < 0){
-				r = d_u_new[next_index][i * SIZE + j - 1];
-			}
-			else{
-				r = shared_cells[tx][ty - 1][next_index];
-			}
-			if(ty+1 == BLOCK_SIZE){
-				s = d_u_new[next_index][i * SIZE + j + 1];
-			}
-			else{
-				s = shared_cells[tx][ty + 1][next_index];
-			}
-			next_index = (next_index + 1) % 2;
-			if((tx - 1 < 0) || (tx + 1 == BLOCK_SIZE) || (ty - 1 < 0) || (ty + 1 == BLOCK_SIZE)){
-				d_u_new[next_index][target] = 0.25 * (p + q + r + s);
-			}else{
-				shared_cells[tx][ty][next_index] = 0.25 * (p + q + r + s);
-			}
+	next_index = (iteration) % 2;
+
+	if(!truth)
+	{
+		if(tx-1 < 0){
+			p = d_u_new[next_index][(i - 1) * SIZE + j];
 		}
-		__syncthreads();
+		else{
+			p = shared_cells[tx - 1][ty][next_index];
+		}
+		if(tx+1 == BLOCK_SIZE){
+			q = d_u_new[next_index][(i + 1) * SIZE + j];
+		}
+		else{
+			q = shared_cells[tx + 1][ty][next_index];
+		}
+		if(ty-1 < 0){
+			r = d_u_new[next_index][i * SIZE + j - 1];
+		}
+		else{
+			r = shared_cells[tx][ty - 1][next_index];
+		}
+		if(ty+1 == BLOCK_SIZE){
+			s = d_u_new[next_index][i * SIZE + j + 1];
+		}
+		else{
+			s = shared_cells[tx][ty + 1][next_index];
+		}
+		if((tx - 1 < 0) || (tx + 1 == BLOCK_SIZE) || (ty - 1 < 0) || (ty + 1 == BLOCK_SIZE)){
+			d_u_new[next_index][target] = 0.25 * (p + q + r + s);
+		}else{
+			shared_cells[tx][ty][next_index] = 0.25 * (p + q + r + s);
+		}
+
+		//__syncthreads();
 	}
-	if(!truth){
-		d_u_new[0][target] = 0.25 * (p + q + r + s);
+	if (iteration == ITERATIONS-1){
+		if(!truth){
+			d_u_new[0][target] = 0.25 * (p + q + r + s);
+		}
 	}
 }
 
@@ -161,7 +162,11 @@ int main()
 	dim3 dimGrid(SIZE/BLOCK_SIZE,SIZE/BLOCK_SIZE);
 	
 	time_t start_time = time(NULL);
-	jacobi<<<dimGrid,dimBlock>>>(cells_gpu[0], cells_gpu[1]);
+	int k;
+	for (k = 0; k < ITERATIONS; k++)
+	{
+		jacobi<<<dimGrid,dimBlock>>>(cells_gpu[0], cells_gpu[1], k);
+	}
 	cudaMemcpy(cells[0], cells_gpu[0], size, cudaMemcpyDeviceToHost);
 	time_t end_time = time(NULL);
 
@@ -169,12 +174,12 @@ int main()
 	{
 		for(j=0; j < SIZE; j++){
 			steady_state[i][j] = cells[0][i*SIZE+j];
-	//		printf("%f ", cells[0][i*SIZE+j]);
+		//	printf("%f ", cells[0][i*SIZE+j]);
 		}
 	//	printf("\n");
 	}
 	printf("\nExecution time: %d seconds\n", (int) difftime(end_time, start_time));
-	//create_snapshot(cells, SIZE-2, SIZE-2, ITERATIONS);
+	create_snapshot(steady_state, SIZE-2, SIZE-2, ITERATIONS);
 
 	/* Liberamos memoria */
 	free(cells[0]);
