@@ -3,7 +3,7 @@
 #include <math.h>
 #include <cuda.h>
 #define SIZE 8192
-#define BLOCK_SIZE 64
+#define BLOCK_SIZE 16
 #define ITERATIONS 10000
 
 #define TOP_BOUNDARY_VALUE 0.0
@@ -43,68 +43,55 @@ void print_matrix(float**u)
 		printf("\n");
 	}
 }
-__global__ void jacobi(float *x, float *y)
+__global__ void jacobi(float *d_u_new,float *d_u)
 {
-	float p, q, r, s, *d_u_new[2];
-	d_u_new[0] = x;
-	d_u_new[1] = y;
-
+	float p, q, r, s;
 	int tx = threadIdx.x;
 	int ty = threadIdx.y;
 
 	int i = blockIdx.x*blockDim.x + tx;
 	int j = blockIdx.y*blockDim.y + ty;
-	int k, next_index=0;
 
 	int target = i*SIZE+j;
-
-	__shared__ float shared_cells[BLOCK_SIZE][BLOCK_SIZE][2];
-	shared_cells[tx][ty][0] = shared_cells[tx][ty][1] = d_u_new[0][target];
+	__shared__ float shared_cells[BLOCK_SIZE][BLOCK_SIZE];
 	
-	__syncthreads();
-	bool truth =  ((target<SIZE)||(target%SIZE==0)||(target>=SIZE*(SIZE-1))||(target%SIZE==(SIZE-1)));
+	shared_cells[tx][ty] = d_u[target];
+	__syncthreads(); 
 	
-	for (k = 0; k < ITERATIONS; k++){
-		if(!truth)
-		{
-			if(tx-1 < 0){
-				p = d_u_new[next_index][(i - 1) * SIZE + j];
-			}
-			else{
-				p = shared_cells[tx - 1][ty][next_index];
-			}
-			if(tx+1 == BLOCK_SIZE){
-				q = d_u_new[next_index][(i + 1) * SIZE + j];
-			}
-			else{
-				q = shared_cells[tx + 1][ty][next_index];
-			}
-			if(ty-1 < 0){
-				r = d_u_new[next_index][i * SIZE + j - 1];
-			}
-			else{
-				r = shared_cells[tx][ty - 1][next_index];
-			}
-			if(ty+1 == BLOCK_SIZE){
-				s = d_u_new[next_index][i * SIZE + j + 1];
-			}
-			else{
-				s = shared_cells[tx][ty + 1][next_index];
-			}
-			next_index = (next_index + 1) % 2;
-			if((tx - 1 < 0) || (tx + 1 == BLOCK_SIZE) || (ty - 1 < 0) || (ty + 1 == BLOCK_SIZE)){
-				d_u_new[next_index][target] = 0.25 * (p + q + r + s);
-			}else{
-				shared_cells[tx][ty][next_index] = 0.25 * (p + q + r + s);
-			}
-		}
-		__syncthreads();
+	if((target<SIZE)||(target%SIZE==0)||(target>=SIZE*(SIZE-1))||(target%SIZE==(SIZE-1))){
 	}
-	if(!truth){
-		d_u_new[0][target] = 0.25 * (p + q + r + s);
+	else
+	{
+		if(tx-1 < 0){
+			p = d_u[(i - 1) * SIZE + j];
+		}
+		else{
+			p = shared_cells[tx - 1][ty];
+		}
+		if(tx+1 == BLOCK_SIZE){
+			q = d_u[(i + 1) * SIZE + j];
+		}
+		else{
+			q = shared_cells[tx + 1][ty];
+		}
+		if(ty-1 < 0){
+			r = d_u[i * SIZE + j - 1];
+		}
+		else{
+			r = shared_cells[tx][ty - 1];
+		}
+		if(ty+1 == BLOCK_SIZE){
+			s = d_u[i * SIZE + j + 1];
+		}
+		else{
+			s = shared_cells[tx][ty + 1];
+		}
+		d_u_new[target] = 0.25 * (p + q + r + s);
+		//d_u_new[target]=0.25*( p + shared_cells[tx + 1][ty] + shared_cells[tx][ty - 1] + shared_cells[tx][ty + 1]);
+	}
+	if((tx > 0) && (tx < BLOCK_SIZE - 1) && (ty > 0) && (ty < BLOCK_SIZE - 1)){
 	}
 }
-
 
 float **allocate_cells(int num_cols, int num_rows) {
 	float **array = (float **) malloc(num_rows * sizeof(float *));
@@ -129,6 +116,7 @@ int main()
 
 
 	size=SIZE*SIZE*sizeof(float);
+	printf("Necesitamos %d Mb\n",3*size/1024/1024);
 	cells[0]    = (float*)malloc(size);
 	cells[1]    = (float*)malloc(size);
 	
@@ -161,18 +149,28 @@ int main()
 	dim3 dimGrid(SIZE/BLOCK_SIZE,SIZE/BLOCK_SIZE);
 	
 	time_t start_time = time(NULL);
-	jacobi<<<dimGrid,dimBlock>>>(cells_gpu[0], cells_gpu[1]);
-	cudaMemcpy(cells[0], cells_gpu[0], size, cudaMemcpyDeviceToHost);
-	time_t end_time = time(NULL);
+	for(i=0;i<ITERATIONS;i++)
+	{
+		if(i%2==0)
+			jacobi<<<dimGrid,dimBlock>>>(cells_gpu[0], cells_gpu[1]);
+		else
+			jacobi<<<dimGrid,dimBlock>>>(cells_gpu[1], cells_gpu[0]);
+		if(i%10==0)
+			printf("iter=%d\n",i);
+	}
+
+	int final_cells = (ITERATIONS % 2 == 0) ? 1 : 0;
+	cudaMemcpy(cells[0], cells_gpu[final_cells], size, cudaMemcpyDeviceToHost);
 
 	for(i=0;i<SIZE;i++)
 	{
 		for(j=0; j < SIZE; j++){
 			steady_state[i][j] = cells[0][i*SIZE+j];
-	//		printf("%f ", cells[0][i*SIZE+j]);
+		//	printf("%f ", cells[0][i*SIZE+j]);
 		}
-	//	printf("\n");
+		//printf("\n");
 	}
+	time_t end_time = time(NULL);
 	printf("\nExecution time: %d seconds\n", (int) difftime(end_time, start_time));
 	//create_snapshot(cells, SIZE-2, SIZE-2, ITERATIONS);
 

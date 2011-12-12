@@ -88,14 +88,6 @@ int main(int argc, char **argv) {
 	// Output a snapshot of the final state of the plate
 	int final_cells = (iterations % 2 == 0) ? 0 : 1;
 	create_snapshot(cells[final_cells], num_cols, num_rows, iterations);
-int j;
-	for(i=0;i<=num_rows+1;i++)
-	{
-		for(j=0; j <= num_cols+1; j++){
-			printf("%f ", cells[final_cells][i][j]);
-		}
-		printf("\n");
-	}
 
 	// Compute and output the execution time
 	time_t end_time = time(NULL);
